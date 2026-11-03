@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Co-op Launcher Standard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Teko:wght@500;600&family=Barlow:wght@400;500;600&family=Jost:wght@300;400;500&display=swap">
+<style>
+/* Layout: a spec sheet. Prototype first (the thing to react to), then findings, then the standard as numbered rules, then the build plan. */
+:root{
+  --paper:#f4f5f3; --sheet:#ffffff; --ink:#1b2024; --ink-2:#4a545b; --rule:#d9dddb; --tint:#e9edeb;
+  --accent:#0d6b73; --accent-ink:#ffffff; --warn:#a2560b; --ok:#2f7d4a; --bad:#a3372f;
+  --core:#0d6b73; --coop:#6d4a93; --on-strong:#ffffff;
+  --f-display:"Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111517; --sheet:#171c1f; --ink:#e7ecea; --ink-2:#a4b0b3; --rule:#2b3337; --tint:#1e2528;
+  --accent:#5cc3c9; --accent-ink:#0b1416; --warn:#e3a35a; --ok:#79c28f; --bad:#ec8a80; --core:#2d8f96; --coop:#8665ad; --on-strong:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111517; --sheet:#171c1f; --ink:#e7ecea; --ink-2:#a4b0b3; --rule:#2b3337; --tint:#1e2528;
+  --accent:#5cc3c9; --accent-ink:#0b1416; --warn:#e3a35a; --ok:#79c28f; --bad:#ec8a80; --core:#2d8f96; --coop:#8665ad; --on-strong:#ffffff; color-scheme:dark}
+
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-stretch:82%;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,5vw,54px);font-weight:800;line-height:1.02}
+h2{font-size:28px;font-weight:750;margin-bottom:12px}
+h3{font-size:19px;font-weight:700;margin:22px 0 6px}
+p{margin:0 0 12px;max-width:72ch}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--tint);padding:1px 5px;border-radius:3px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+header.top{display:grid;gap:14px;padding-bottom:22px;border-bottom:2px solid var(--ink);margin-bottom:26px}
+header.top .lede{font-size:18px;color:var(--ink-2);max-width:68ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:12.5px;color:var(--ink-2)}
+section{margin-top:56px}
+.sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:18px;flex-wrap:wrap}
+.sec-head .eyebrow{min-width:2.5em}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px 28px}
+.finding{border-top:1px solid var(--rule);padding-top:10px;min-width:0}
+.finding b{display:block;font-weight:600;margin-bottom:2px}
+.finding p{font-size:14.5px;color:var(--ink-2);margin:0 0 4px}
+.finding .so{font-size:13px;color:var(--ink-2)}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule)}
+th{font-family:var(--f-mono);font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:var(--tint)}
+tr:last-child td{border-bottom:0}
+td.std{color:var(--ink);font-weight:500}
+td.was{color:var(--ink-2)}
+.rule-list{counter-reset:r;display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.rule-list li{counter-increment:r;display:grid;grid-template-columns:3.2em 1fr;gap:4px;min-width:0}
+.rule-list li::before{content:attr(data-id);font-family:var(--f-mono);font-size:12.5px;color:var(--accent);padding-top:3px}
+.rule-list li p{margin:0}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.pill.host{color:var(--warn)} .pill.you{color:var(--accent)}
+/* keyboard map */
+.kbwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--sheet);padding:14px}
+.kb{display:grid;gap:5px;min-width:760px}
+.kbrow{display:flex;gap:5px}
+.key{flex:1 1 0;min-width:0;height:46px;border-radius:5px;border:1px solid var(--rule);background:var(--paper);display:flex;flex-direction:column;justify-content:space-between;padding:3px 5px;font-family:var(--f-mono);font-size:10.5px;line-height:1.1;cursor:default;position:relative;overflow:hidden}
+.key .kc{font-weight:500;font-size:11px;color:var(--ink-2)}
+.key .act{font-family:var(--f-body);font-size:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.key.core{background:var(--core);border-color:var(--core);color:var(--on-strong)} .key.core .kc{color:var(--on-strong);opacity:.8}
+.key.coop{background:var(--coop);border-color:var(--coop);color:var(--on-strong)} .key.coop .kc{color:var(--on-strong);opacity:.8}
+.key.game{background:var(--tint)}
+.key.dev{border-style:dashed;border-color:var(--ink-2)}
+.key.clash::after{content:"";position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 2px var(--sheet)}
+.key:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.kbmouse{display:flex;gap:5px;margin-top:10px;max-width:520px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2);margin:10px 0 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--rule)}
+.kbinfo{min-height:24px;font-size:14px;margin-top:8px}
+.kbbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+pre.block{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:13px;line-height:1.5;margin:8px 0 14px}
+.callout{border-left:3px solid var(--accent);background:var(--sheet);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout p:last-child{margin:0}
+.decide{display:grid;gap:10px;padding:0;list-style:none;margin:0}
+.decide li{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:12px 14px}
+.decide li b{display:block}
+.decide .rec{font-size:13.5px;color:var(--ink-2)}
+ol.plan{padding-left:1.3em;display:grid;gap:8px} ol.plan li{padding-left:4px}
+
+/* ---------- prototype shell ---------- */
+.proto{display:grid;grid-template-columns:1fr;gap:14px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px 14px}
+.controls .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.controls .lbl{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-right:4px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{font:500 13px var(--f-body);background:transparent;color:var(--ink);border:0;padding:6px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer;padding:3px 8px;border-radius:5px;border:1px solid var(--rule)}
+.chk input{accent-color:var(--accent);margin:0}
+.controls select{font:13px var(--f-body);background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:5px;padding:4px 6px}
+button:focus-visible,select:focus-visible,input:focus-visible,.chk:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.stage{position:relative;width:100%;border-radius:10px;overflow:hidden;box-shadow:0 1px 0 var(--rule),0 18px 40px -24px rgba(0,0,0,.45)}
+.note{font-size:13.5px;color:var(--ink-2);margin:0}
+
+/* ---------- the device: a launcher, 960 x 600 design pixels, scaled to fit ---------- */
+.device{position:absolute;left:0;top:0;width:960px;height:600px;transform-origin:0 0;overflow:hidden;
+  background:var(--k-bg);color:var(--k-text);font-family:var(--k-body);font-size:14px;line-height:1.35;display:flex}
+.device[data-skin="mdk2"]{--k-bg:#0e171b;--k-panel:#111d22;--k-tile:#18272e;--k-tile-hot:#1f323b;--k-line:#2c434d;--k-text:#e9eff1;--k-dim:#8fa4ac;--k-faint:#5c727b;
+  --k-accent:#ff9025;--k-accent-ink:#1c0d00;--k-accent-2:#5ec8ff;--k-ok:#7fd19a;--k-warn:#ffb35b;--k-bad:#ff7a6b;--k-sel:#2a2014;
+  --k-head:"Teko","Arial Narrow",sans-serif;--k-head-size:1.32;--k-head-track:.06em;--k-head-case:uppercase;--k-head-weight:600;--k-body:"Barlow",system-ui,sans-serif;--k-radius:0px}
+.device[data-skin="witness"]{--k-bg:#0d1115;--k-panel:#10161c;--k-tile:#161e26;--k-tile-hot:#1c2731;--k-line:#26323d;--k-text:#e4ebf0;--k-dim:#8593a0;--k-faint:#56636f;
+  --k-accent:#4fd6f3;--k-accent-ink:#06171c;--k-accent-2:#f2b24a;--k-ok:#8fd9a8;--k-warn:#f2b24a;--k-bad:#f2867a;--k-sel:#10262d;
+  --k-head:"Jost",system-ui,sans-serif;--k-head-size:1;--k-head-track:.2em;--k-head-case:uppercase;--k-head-weight:400;--k-body:"Jost",system-ui,sans-serif;--k-radius:4px}
+.device[data-skin="template"]{--k-bg:#e7e9ea;--k-panel:#f3f4f4;--k-tile:#ffffff;--k-tile-hot:#f7f8f8;--k-line:#b9bfc2;--k-text:#1d2327;--k-dim:#5b656b;--k-faint:#8a9399;
+  --k-accent:#1d2327;--k-accent-ink:#ffffff;--k-accent-2:#4a6b80;--k-ok:#2f7d4a;--k-warn:#9a5a10;--k-bad:#a3372f;--k-sel:#e3e8ea;
+  --k-head:"IBM Plex Mono",monospace;--k-head-size:.9;--k-head-track:.04em;--k-head-case:uppercase;--k-head-weight:500;--k-body:"IBM Plex Sans",system-ui,sans-serif;--k-radius:3px}
+
+.device *{box-sizing:border-box}
+.device button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;text-align:left}
+.device[data-skin="mdk2"],.device[data-skin="witness"]{color-scheme:dark}
+.device input{font:inherit;color:var(--k-text)}
+.device :focus-visible{outline:2px solid var(--k-accent-2);outline-offset:2px}
+.kh{font-family:var(--k-head);text-transform:var(--k-head-case);letter-spacing:var(--k-head-track);font-weight:var(--k-head-weight)}
+
+/* art panel */
+.art{position:relative;flex:0 0 360px;overflow:hidden;transition:flex-basis .35s ease;border-right:1px solid var(--k-line)}
+.device.wide .art{flex-basis:150px}
+.art canvas,.art svg.bgart{position:absolute;inset:0;width:100%;height:100%}
+.art .mark{position:absolute;left:0;right:0;bottom:56px;text-align:center;padding:0 10px}
+.art .mark .t1{font-family:var(--k-head);font-weight:600;text-transform:uppercase;line-height:.9;font-size:calc(64px * var(--k-head-size));letter-spacing:var(--k-head-track)}
+.art .mark .t2{font-family:var(--k-head);text-transform:uppercase;letter-spacing:.3em;color:var(--k-accent);font-size:15px;margin-top:8px}
+.art .mark .ver{font-size:12px;color:var(--k-dim);margin-top:10px}
+.device.wide .art .mark .t1{font-size:calc(30px * var(--k-head-size))}
+.device.wide .art .mark .t2{font-size:10px;letter-spacing:.15em}
+[data-skin="mdk2"] .art .mark .t1{background:linear-gradient(180deg,#ffd76a,#ff9025 55%,#c4520c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(0,0,0,.55))}
+[data-skin="witness"] .art .mark .t1{font-weight:300;font-size:34px;letter-spacing:.35em;line-height:1.3}
+.device.wide[data-skin="witness"] .art .mark .t1{font-size:16px;letter-spacing:.2em}
+[data-skin="template"] .art{background:repeating-linear-gradient(45deg,#dfe2e3 0 10px,#e7e9ea 10px 20px)}
+[data-skin="template"] .art .slot{position:absolute;inset:24px 24px 150px;border:2px dashed var(--k-line);display:grid;place-items:center;color:var(--k-dim);font:500 12px var(--f-mono);text-align:center;padding:10px}
+.device.wide[data-skin="template"] .art .slot{inset:14px 14px 120px}
+
+/* right panel */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--k-panel);position:relative}
+.tabs{display:flex;align-items:flex-end;gap:26px;padding:20px 26px 0;border-bottom:1px solid var(--k-line)}
+.device .tab{padding-bottom:10px;font-size:calc(22px * var(--k-head-size));color:var(--k-dim);border-bottom:3px solid transparent;margin-bottom:-1px;line-height:1}
+[data-skin="witness"] .tab{font-size:14px}
+.tab:hover{color:var(--k-text)}
+.tab[aria-selected="true"]{color:var(--k-accent);border-bottom-color:var(--k-accent)}
+.tabs .spacer{flex:1}
+.tabs .ver{font-size:12px;color:var(--k-faint);padding-bottom:12px}
+.body{flex:1;min-height:0;overflow:auto;padding:18px 26px 12px;position:relative}
+.foot{display:flex;gap:18px;padding:8px 26px 10px;font-size:11.5px;color:var(--k-faint);border-top:1px solid var(--k-line)}
+.foot b{color:var(--k-dim);font-weight:500}
+
+/* generic pieces */
+.row{display:flex;gap:10px;align-items:center}
+.dim{color:var(--k-dim)} .faint{color:var(--k-faint)} .small{font-size:12px}
+.field{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.field label{width:110px;color:var(--k-dim);font-size:13px}
+.inp{flex:1;background:var(--k-tile);border:1px solid var(--k-line);border-radius:var(--k-radius);padding:7px 10px;outline:none;min-width:0}
+.inp:focus{border-color:var(--k-accent-2)}
+.device .tile{display:block;width:100%;background:var(--k-tile);border:1px solid var(--k-line);border-left:4px solid var(--k-faint);border-radius:var(--k-radius);padding:9px 14px;margin-bottom:8px}
+.tile:hover{background:var(--k-tile-hot)}
+.tile .tn{font-size:calc(21px * var(--k-head-size));line-height:1.05}
+[data-skin="witness"] .tile .tn{font-size:14px;margin-bottom:2px}
+.tile .tl{font-size:12.5px;color:var(--k-dim)}
+.tile[aria-pressed="true"]{background:var(--k-sel);border-color:var(--k-accent);border-left-color:var(--k-accent)}
+.tile[aria-pressed="true"] .tn{color:var(--k-accent)}
+.device .primary{display:block;width:100%;text-align:center!important;background:var(--k-accent)!important;color:var(--k-accent-ink)!important;border-radius:var(--k-radius);padding:12px 10px;font-size:calc(26px * var(--k-head-size));line-height:1;box-shadow:inset 0 -4px 0 rgba(0,0,0,.22)}
+[data-skin="witness"] .primary{font-size:15px;box-shadow:none;padding:13px}
+[data-skin="template"] .primary{font-size:17px;box-shadow:none}
+.primary[disabled]{opacity:.38;cursor:default}
+.ghost{border:1px solid var(--k-line)!important;border-radius:var(--k-radius);padding:7px 12px!important;background:var(--k-tile)!important;font-size:13px;text-align:center!important}
+.ghost:hover{background:var(--k-tile-hot)!important}
+.ghost.sm{padding:4px 9px!important;font-size:12px}
+.link{color:var(--k-accent-2)!important;text-decoration:underline;text-underline-offset:2px;font-size:12.5px}
+.badge{display:inline-block;font-size:10.5px;letter-spacing:.04em;padding:1px 6px;border-radius:99px;border:1px solid var(--k-line);color:var(--k-dim);white-space:nowrap;vertical-align:1px}
+.badge.lan{color:var(--k-ok);border-color:currentColor} .badge.ts{color:var(--k-accent-2);border-color:currentColor}
+.badge.steam{color:#9fb7ff;border-color:currentColor} .badge.recent{color:var(--k-dim)} .badge.inet{color:var(--k-warn);border-color:currentColor}
+[data-skin="template"] .badge.steam{color:#3e4f9a}
+.badge.host{color:var(--k-warn);border-color:currentColor}
+.banner{display:flex;gap:10px;align-items:center;padding:8px 12px;margin-bottom:12px;border:1px solid var(--k-accent-2);border-radius:var(--k-radius);background:var(--k-tile);font-size:13px}
+.banner .grow{flex:1;min-width:0}
+.bottom{padding-top:10px}
+.cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--k-dim);margin:2px 0 6px}
+.toast{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);background:var(--k-text);color:var(--k-bg);padding:8px 14px;border-radius:6px;font-size:13px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.35);z-index:5;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+
+/* join list */
+.sources{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--k-dim);margin-bottom:8px}
+.sources span.done::before{content:"\2713  ";color:var(--k-ok)}
+.sources span.busy::before{content:"\25CC  ";color:var(--k-faint)}
+.sources span.off{color:var(--k-faint);text-decoration:line-through}
+.games{border:1px solid var(--k-line);border-radius:var(--k-radius);background:var(--k-tile);min-height:150px;max-height:198px;overflow:auto}
+.game{display:grid!important;grid-template-columns:10px 1fr auto;gap:10px;align-items:center;width:100%;padding:8px 12px!important;border-bottom:1px solid var(--k-line)!important;animation:in .25s ease both}
+.game:last-child{border-bottom:0!important}
+.game:hover{background:var(--k-tile-hot)!important}
+.game[aria-pressed="true"]{background:var(--k-sel)!important;box-shadow:inset 3px 0 0 var(--k-accent)}
+.game .dot{width:9px;height:9px;border-radius:50%;background:var(--k-ok)}
+.game.off .dot{background:var(--k-faint)} .game.mis .dot{background:var(--k-warn)}
+.game .nm{font-weight:600}
+.game.off .nm,.game.mis .nm{color:var(--k-dim)}
+.game .st{font-size:12px;color:var(--k-dim)}
+.game .rt{text-align:right;font-size:11.5px;color:var(--k-dim)}
+.empty{padding:20px;color:var(--k-dim);font-size:13px;text-align:center}
+@keyframes in{from{opacity:.0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.game{animation:none}.art{transition:none}}
+.recog{font-size:12px;margin-top:4px;min-height:16px}
+.recog.ok{color:var(--k-ok)} .recog.bad{color:var(--k-bad)}
+
+/* lobby */
+.lobby{display:grid;grid-template-columns:230px 1fr 270px;gap:16px;height:100%}
+.lobby .col{min-width:0;min-height:0;display:flex;flex-direction:column}
+.lobby .col.side{overflow:auto;padding-right:4px}
+.device .body.lob{padding-top:12px;overflow:hidden}
+.member{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--k-line);font-size:13px}
+.member .ic{width:8px;height:8px;border-radius:50%;background:var(--k-accent-2);flex:none}
+.member .ic.talk{box-shadow:0 0 0 3px rgba(127,209,154,.35);background:var(--k-ok)}
+.member .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member .rd{font-size:11.5px;color:var(--k-warn)} .member .rd.ok{color:var(--k-ok)}
+.panel{border:1px solid var(--k-line);background:var(--k-tile);border-radius:var(--k-radius)}
+.chat{flex:1;overflow:auto;padding:8px 10px;font-size:13px;min-height:0}
+.chat p{margin:0 0 4px} .chat b{color:var(--k-accent-2);font-weight:600}
+.chat .sys{color:var(--k-faint);font-style:italic}
+.way{display:grid;grid-template-columns:16px 1fr;gap:6px;padding:5px 10px;border-bottom:1px solid var(--k-line);font-size:12.3px}
+.way:last-child{border-bottom:0}
+.way .i{font-weight:700} .way .i.ok{color:var(--k-ok)} .way .i.warn{color:var(--k-warn)} .way .i.no{color:var(--k-faint)}
+.way .h{font-weight:600;font-size:12.8px}
+.way .d{color:var(--k-dim);font-size:11.8px;line-height:1.3}
+.code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.02em;background:var(--k-bg);border:1px dashed var(--k-line);padding:6px 8px;border-radius:var(--k-radius);word-break:break-all;margin:6px 0}
+.wtp .row{justify-content:space-between;font-size:12.5px;padding:3px 0}
+
+/* settings */
+.set{display:grid;grid-template-columns:150px 1fr;gap:18px;height:100%}
+.snav button{display:block;width:100%;padding:6px 10px;font-size:13px;color:var(--k-dim);border-left:3px solid transparent}
+.snav button[aria-current="true"]{color:var(--k-text);border-left-color:var(--k-accent);background:var(--k-tile)}
+.srow{display:grid;grid-template-columns:1fr 190px;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--k-line)}
+.srow .sl{font-size:13.5px}
+.srow .sh{font-size:11.5px;color:var(--k-dim)}
+.ctl{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.tog{width:40px;height:20px;border-radius:99px;background:var(--k-line);position:relative;flex:none}
+.tog::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--k-text);transition:left .15s}
+.tog[aria-checked="true"]{background:var(--k-accent)} .tog[aria-checked="true"]::after{left:22px;background:var(--k-accent-ink)}
+.chooser{display:flex;align-items:center;justify-content:space-between;width:190px;background:var(--k-tile);border:1px solid var(--k-line);border-radius:var(--k-radius);font-size:13px}
+.chooser button{padding:4px 9px;color:var(--k-dim)} .chooser button:hover{color:var(--k-text)}
+.chooser span{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slider{display:flex;align-items:center;gap:8px;width:190px}
+.slider input{flex:1;accent-color:var(--k-accent)}
+.slider output{width:38px;text-align:right;font-size:12px;color:var(--k-dim)}
+.keycap{min-width:90px;text-align:center!important;font-family:"IBM Plex Mono",monospace;font-size:12px;border:1px solid var(--k-line)!important;border-bottom-width:3px!important;border-radius:4px;padding:3px 8px!important;background:var(--k-tile)!important}
+.keycap.wait{border-color:var(--k-accent)!important;color:var(--k-accent)}
+.scope{font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:99px;border:1px solid;vertical-align:2px;margin-left:6px;white-space:nowrap}
+.scope.h{color:var(--k-warn)} .scope.y{color:var(--k-faint)}
+.slotnote{border:1px dashed var(--k-line);padding:6px 10px;font-size:12px;color:var(--k-dim);margin:8px 0;border-radius:var(--k-radius)}
+
+/* saves */
+.save{display:grid!important;grid-template-columns:1fr auto;gap:2px 12px;width:100%;padding:9px 12px!important;border-bottom:1px solid var(--k-line)!important}
+.save:hover{background:var(--k-tile-hot)!important}
+.save[aria-pressed="true"]{background:var(--k-sel)!important;box-shadow:inset 3px 0 0 var(--k-accent)}
+.save .a{font-weight:600} .save .b{font-size:12px;color:var(--k-dim)} .save .c{font-size:12px;color:var(--k-dim);text-align:right}
+.prog{height:4px;background:var(--k-line);border-radius:2px;overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--k-accent)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">coop-mod-kit · the co-op mod standard · v1 · November 2026</div>
+  <h1>Co-op Launcher Standard</h1>
+  <p class="lede">One way of installing, hosting, joining and setting up, shared by MDK2 Co-op and The Witness Co-op, and the template for the next mod. Each game keeps its own look. What is shared is where things are, what they are called and how they behave. Friends find each other without typing IP addresses.</p>
+  <div class="meta"><span>Used by MDK2 Co-op and The Witness Co-op</span><span>Rules: <a href="https://github.com/TommoDotCommo/coop-mod-kit/blob/main/STANDARD.md">STANDARD.md</a></span><span>Code: <a href="https://github.com/TommoDotCommo/coop-mod-kit/tree/main/reference">reference/</a></span></div>
+</header>
+
+<section id="prototype" style="margin-top:8px">
+  <div class="sec-head"><span class="eyebrow">01</span><h2>Try the flow</h2></div>
+  <p class="note" style="margin-bottom:12px">A clickable model of the shared launcher. Switch the skin to see the same structure dressed as each game. Change the situation to see how hosting and joining adapt: who has Steam, who has Tailscale, what the router allows. Everything is simulated; no network calls.</p>
+  <div class="proto">
+    <div class="controls" role="group" aria-label="Prototype controls">
+      <div class="grp"><span class="lbl">Skin</span>
+        <div class="seg" id="skinSeg">
+          <button type="button" data-skin="mdk2" aria-pressed="true">MDK2</button>
+          <button type="button" data-skin="witness" aria-pressed="false">The Witness</button>
+          <button type="button" data-skin="template" aria-pressed="false">Blank template</button>
+        </div>
+      </div>
+      <div class="grp"><span class="lbl">Situation</span>
+        <label class="chk"><input type="checkbox" id="sc-steam" checked> Steam running</label>
+        <label class="chk"><input type="checkbox" id="sc-ts" checked> Tailscale installed</label>
+        <label class="chk"><input type="checkbox" id="sc-lan" checked> Friend on same Wi-Fi</label>
+        <label class="chk"><input type="checkbox" id="sc-clip"> Invite on clipboard</label>
+        <label class="chk"><input type="checkbox" id="sc-upd"> Update available</label>
+        <select id="sc-net" aria-label="Router">
+          <option value="upnp">Router: opens ports itself (UPnP)</option>
+          <option value="closed">Router: no UPnP, port closed</option>
+          <option value="cgnat">ISP: shared address (CGNAT)</option>
+        </select>
+        <button type="button" class="chk" id="resetBtn">Reset</button>
+      </div>
+    </div>
+    <div class="stage" id="stage"><div class="device" id="dev" data-skin="mdk2"></div></div>
+    <p class="note">Keys work inside the model: Enter confirms, Esc goes back, F1 is the quick guide in the real launchers. Best viewed on a computer screen; on a phone the model shrinks to fit.</p>
+  </div>
+</section>
+
+<section id="findings">
+  <div class="sec-head"><span class="eyebrow">02</span><h2>What the research says</h2></div>
+  <div class="grid2">
+    <div class="finding"><b>Tailscale will never show a LAN list on its own</b><p>It carries no broadcast or multicast, so classic "LAN games" discovery comes up empty over it. But every device on the tailnet, including PCs friends have shared with you, is listed locally with its 100.x address and an online flag. The launcher can read that list and ask each online device directly. That is the auto-scan you want.</p><div class="so"><a href="https://forum.tailscale.com/t/broadcast-multicast-support/156">Tailscale forum</a> · <a href="https://git.quad4.io/Mirrors/tailscale/src/commit/6d02a48d8d6e3d11db4c3d467c85bc36386058a3/ipn/ipnstate/ipnstate.go">ipnstate (status JSON)</a></div></div>
+    <div class="finding"><b>Shared Tailscale machines answer but cannot call out</b><p>A machine shared into a friend's tailnet is quarantined: it accepts connections and cannot start them. That suits a host/client game. The host shares their PC, friends join. If both people want to host, they share both ways. The launcher's help text has to say this in one line.</p><div class="so"><a href="https://tailscale.com/kb/1084/sharing">Tailscale: sharing</a></div></div>
+    <div class="finding"><b>Windows broadcasts on one adapter only</b><p>A packet to 255.255.255.255 leaves only through the adapter with the preferred route. With Wi-Fi plus ZeroTier, Radmin or Hamachi, half the games stay invisible. The fix is to send a directed broadcast on each adapter's own subnet. Then L2 VPNs like ZeroTier work too.</p><div class="so"><a href="https://github.com/dechamps/WinIPBroadcast">WinIPBroadcast</a> · <a href="https://discuss.zerotier.com/t/lan-gaming-discovery-issue/18902">ZeroTier forum</a></div></div>
+    <div class="finding"><b>Good co-op games layer the ways in</b><p>Stardew Valley lists Steam friends' farms on the join screen by itself, takes an invite code, and keeps join-by-IP for LAN. Factorio has a LAN browser plus "Connect to address". Minecraft hosts announce on LAN every 1.5 s. Typing an address is always the fallback, never the main path.</p><div class="so"><a href="https://stardewvalleywiki.com/Multiplayer">Stardew wiki</a> · <a href="https://wiki.factorio.com/Server">Factorio wiki</a> · <a href="https://www.curseforge.com/minecraft/mc-mods/lan-announcer">LAN Announcer</a></div></div>
+    <div class="finding"><b>Discord only makes web links clickable</b><p>Custom links such as <code>steam://</code> show as plain text in Discord, where most invites get pasted. An invite has to be an <code>https://</code> link, or a code the launcher picks up from the clipboard.</p><div class="so"><a href="https://support.discord.com/hc/es/community/posts/14574789338135-Steam-URI-links-no-longer-supported">Discord support thread</a></div></div>
+    <div class="finding"><b>UPnP helps, except behind CGNAT</b><p>UPnP and NAT-PMP only configure your own router. When the ISP shares one address between customers (a WAN address in 100.64.0.0/10), no setting at home opens a port. The launcher can detect this and say so plainly, then point to Steam or Tailscale.</p><div class="so"><a href="https://www.rfc-editor.org/rfc/rfc6970.txt">RFC 6970</a> · <a href="https://docs.ipcheck.ing/knowledge-base/diagnose/am-i-behind-cgnat">CGNAT detection</a></div></div>
+    <div class="finding"><b>The firewall prompt silently breaks VPN hosting</b><p>The first-run Windows Firewall prompt allows Private networks only. Tailscale tries to mark its adapter Private and sometimes fails; other VPN adapters start out Public. Friends then cannot reach the host and nothing says why. Setup should add the rule for both profiles once, and the lobby should check it.</p><div class="so"><a href="https://tailscale.com/docs/reference/messages/client/set-network-category-failed">Tailscale docs</a> · <a href="https://forum.tailscale.com/t/win-10-stopped-connecting-cant-get-ping-response/755">Tailscale forum</a></div></div>
+    <div class="finding"><b>Players resent launchers that add steps</b><p>The complaints repeat: a second Play button, silent failures, repeated permission prompts. Owlcat pulled its Rogue Trader launcher within a day. Ours earns its place only if it is faster than going without it: one click to rejoin, choices remembered, skippable, and every failure says what to do.</p><div class="so"><a href="https://pcgamer.com/games/rpg/fan-revolt-forces-rpg-studio-to-kill-its-new-launcher-just-19-hours-after-release/">PC Gamer</a> · <a href="https://aftermath.site/ubisoft-ea-paradox-launcher-pc-steam">Aftermath</a></div></div>
+    <div class="finding"><b>Later: relayed play for GOG and Epic copies</b><p>Epic Online Services offers peer-to-peer with relays and a device-ID login that needs no Epic account, which could give non-Steam players Steam-like "no setup" joining. It needs a free developer registration and a check of the SDK licence. Not for the beta.</p><div class="so"><a href="https://onlineservices.epicgames.com/news/accessing-eos-game-services-with-the-connect-interface">Epic: Connect interface</a></div></div>
+  </div>
+</section>
+
+<section id="today">
+  <div class="sec-head"><span class="eyebrow">03</span><h2>Where the two launchers differ today</h2></div>
+  <p>MDK2's launcher is drawn inside the game before its menu; The Witness has a separate launcher program. That difference stays. Everything below is what a player meets, and it should match.</p>
+  <div class="tbl"><table>
+    <thead><tr><th style="width:15%">Topic</th><th style="width:27%">MDK2 now</th><th style="width:27%">Witness now</th><th>Standard</th></tr></thead>
+    <tbody>
+      <tr><td>Top level</td><td class="was">Play, Saves, Settings, About (plus Help and Saved addresses pages)</td><td class="was">Lobby, Play, Video, Sound and voice, Controls, Game options, Co-op, Saves, Appearance</td><td class="std">Play, Saves, Settings, About. The lobby is a state of Play, not a tab.</td></tr>
+      <tr><td>Starting</td><td class="was">Host / Join / Solo tiles, then one big button</td><td class="was">Host on Steam or Host direct on the Lobby tab; Continue or New game on the Play tab</td><td class="std">Host / Join / Solo tiles and one primary button, in both.</td></tr>
+      <tr><td>Joining</td><td class="was">Address and port fields; saved addresses with live status</td><td class="was">One field for <code>address:port/CODE</code> or a Steam lobby number</td><td class="std">A list of games found automatically, plus one box that accepts any invite, link or address.</td></tr>
+      <tr><td>Steam invites</td><td class="was">In the game: Options &gt; Co-op &gt; Session</td><td class="was">In the launcher: overlay or friend list</td><td class="std">In the lobby's "Friends can join by" panel, in both.</td></tr>
+      <tr><td>Hosting help</td><td class="was">"Forward UDP 27900 and give friends your public IP"</td><td class="was">"Friends reach this PC at" field, blank for automatic</td><td class="std">The launcher works out each way in, checks it, and puts all of them in one invite.</td></tr>
+      <tr><td>Saving settings</td><td class="was">Saved on change</td><td class="was">"Save settings" button</td><td class="std">Saved on change. No Save button anywhere.</td></tr>
+      <tr><td>Numbers and keys</td><td class="was">Choosers and toggles</td><td class="was">Typed text: volumes in percent, ranges in metres, keys by name, player number</td><td class="std">Sliders, choosers and press-a-key capture. Player numbers come from the lobby, never typed.</td></tr>
+      <tr><td>Updates</td><td class="was">About page</td><td class="was">Play page and a banner</td><td class="std">A banner on Play when one is ready; details and settings in About.</td></tr>
+      <tr><td>Problems</td><td class="was">Help page: Send diagnostics</td><td class="was">Footer: Send diagnostics</td><td class="std">About &gt; Report a problem, and offered by every failure message.</td></tr>
+      <tr><td>Different versions</td><td class="was">Warning in the lobby</td><td class="was">Join refused, versions named</td><td class="std">Join refused before the lobby, both versions named, an Update button for whoever is behind.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="standard">
+  <div class="sec-head"><span class="eyebrow">04</span><h2>The standard</h2></div>
+  <p>Rule IDs are stable, for docs and issues. "Must" rules apply to every co-op mod; game-specific content goes in the marked slots.</p>
+
+  <h3>A. Structure</h3>
+  <ul class="rule-list">
+    <li data-id="A1"><p>Four tabs, in this order and with these names: <b>Play, Saves, Settings, About</b>. Nothing else is top level.</p></li>
+    <li data-id="A2"><p><b>Play</b> holds your name, three tiles (Host a game, Join a friend, Play solo) and one primary button whose label says what it does: <i>Open lobby</i>, <i>Join Fox</i>, <i>Play solo</i>. The last choice is remembered.</p></li>
+    <li data-id="A3"><p>Hosting or joining turns Play into the <b>lobby</b>. The other tabs stay usable while you wait. Leaving the lobby returns to the tiles.</p></li>
+    <li data-id="A4"><p>A <b>Rejoin</b> shortcut appears on Play when the last host you played with is online: one click, no list.</p></li>
+    <li data-id="A5"><p>The launcher can be skipped (MDK2: "Show launcher at start", hold Shift to bring it back). The Witness keeps its launcher program, and a shortcut flag starts the last choice directly.</p></li>
+    <li data-id="A6"><p>Keyboard works everywhere: Enter confirms, Esc goes back, Tab moves, F1 shows the quick guide. Where the launcher runs inside the game (MDK2), the gamepad works too: A, B, and the bumpers switch tabs.</p></li>
+  </ul>
+
+  <h3>B. Finding each other</h3>
+  <p>The joiner's launcher looks everywhere at once and lists what answers. The host does nothing special. All probes use one small query and answer, generalised from MDK2's existing <code>CPQ1</code>/<code>CPS1</code> probe, so no traffic flows when nobody is looking.</p>
+  <ul class="rule-list">
+    <li data-id="B1"><p><b>Local network and L2 VPNs</b>: a directed broadcast on every IPv4 adapter's subnet, to the game's default port and the next three. Never only 255.255.255.255.</p></li>
+    <li data-id="B2"><p><b>Tailscale</b>: if Tailscale is installed, read its local peer list (<code>tailscale status --json</code>, no window) and probe each online peer's 100.x address on the same ports. Shared-in machines are included. Nothing is sent anywhere else.</p></li>
+    <li data-id="B3"><p><b>Steam friends</b>: when the game runs from Steam, friends whose rich presence shows this mod's lobby are listed, and Steam's own "Join game" works.</p></li>
+    <li data-id="B4"><p><b>Recent hosts</b>: every successful join is remembered by itself (name, the route that worked, when). Recent hosts are probed and shown with live status. They replace MDK2's hand-made "Saved addresses"; rename, pin and forget stay as row actions.</p></li>
+    <li data-id="B5"><p>Each row shows the host's name, the lobby state (in lobby, in game, full), players out of the limit, the route (LAN, Tailscale, Steam friend, Internet, Recent) and the ping. A different version is shown greyed, with the version, instead of being hidden.</p></li>
+    <li data-id="B6"><p>The list starts filling the moment Join is chosen and refreshes every 5 s while it is on screen. The sources are named with a tick as each finishes, so an empty list explains itself.</p></li>
+    <li data-id="B7"><p>Below the list, one box accepts any invite code, invite link, Steam lobby number, address, <code>address:port</code>, host name or Tailscale name. It says what it recognised before you press Join.</p></li>
+    <li data-id="B8"><p>When the launcher gains focus and the clipboard holds an invite for this game, it offers it: "Fox's invite is on your clipboard. Join?" The clipboard is read only for that check and never stored or sent.</p></li>
+    <li data-id="B9"><p>The host chooses who can see the lobby: <b>Open to my networks</b> (listed and joinable without a code on LAN and Tailscale) or <b>Invite only</b> (not listed; the invite's code is required). Steam lobbies stay friends-only either way.</p></li>
+  </ul>
+
+  <h3>C. Hosting and the invite</h3>
+  <ul class="rule-list">
+    <li data-id="C1"><p>The lobby's <b>Friends can join by</b> panel lists every way in with a check result: Steam, local network, Tailscale (with this PC's Tailscale name), Internet, and Windows Firewall. Each failed check names its fix.</p></li>
+    <li data-id="C2"><p>While a lobby is open, the launcher asks the router for the port by UPnP or NAT-PMP and removes the mapping when the lobby closes. If the router's WAN address is private or in 100.64.0.0/10, it says the ISP shares the address and internet invites cannot work.</p></li>
+    <li data-id="C3"><p><b>Copy invite</b> copies a short message with an <code>https://</code> link and the code. The code carries every working route (LAN, Tailscale, internet, Steam lobby), the port and the lobby's secret. The internet address is included only when the internet check passed.</p></li>
+    <li data-id="C4"><p>The joiner tries all routes in the code at once and keeps the first that answers, preferring LAN, then Tailscale, then internet when several answer within 300 ms.</p></li>
+    <li data-id="C5"><p>The link opens a static page that reads the code from the part after <code>#</code>, so it never reaches a server. The page offers "Open in launcher" (a <code>&lt;mod&gt;-coop://</code> link registered by Setup), the code to copy, and a download link for people who do not have the mod yet.</p></li>
+  </ul>
+  <pre class="block">Invite code v1   &lt;GAME&gt;-XXXXX-XXXXX-...   (Crockford base32, groups of 5, case-insensitive)
+  byte 0        version (4 bits) | flags (4 bits: has-steam, invite-only, ...)
+  bytes 1-4     lobby secret (u32)
+  bytes 5-6     port (u16)
+  then n x 5    route kind (1 LAN, 2 Tailscale/VPN, 3 internet) + IPv4
+  [8 bytes]     Steam lobby id, when has-steam
+  last byte     CRC-8; any change makes the code invalid ("this code is incomplete")
+Example        WIT-8M2KQ-7XR4D-0PZ9T-HV3CE-91A0G    LAN + Tailscale + internet, about 30 characters
+Message        Fox is hosting The Witness co-op. Join: https://&lt;pages&gt;/join#WIT-8M2KQ-7XR4D-0PZ9T-HV3CE-91A0G</pre>
+
+  <h3>D. Lobby</h3>
+  <ul class="rule-list">
+    <li data-id="D1"><p>Three columns: <b>players</b> (host marked, ready state, ping, speaking light, per-player mute), <b>chat</b>, and on the right <b>Friends can join by</b> above <b>What to play</b>.</p></li>
+    <li data-id="D2"><p><b>What to play</b> is a game slot, chosen by the host and shown read-only to the others: MDK2's level and checkpoint or save; The Witness's mode, race goal and parts of the map done.</p></li>
+    <li data-id="D3"><p>The host's button reads <i>Start game</i> and starts once everyone is ready; until then it shows who it is waiting for. Others see <i>Ready</i> / <i>Not ready</i>. Leave is always one click.</p></li>
+    <li data-id="D4"><p>Voice in the lobby follows the Voice settings (push to talk or open mic). Mute myself and deafen are on the players column.</p></li>
+    <li data-id="D5"><p>When the game ends, everyone returns to the same lobby with the result shown in chat.</p></li>
+  </ul>
+
+  <h3>E. Settings</h3>
+  <p>Settings is a list of sections down the left with rows on the right. The sections, their order and the shared rows are fixed; each game adds its own rows in the right section.</p>
+  <div class="tbl"><table>
+    <thead><tr><th style="width:17%">Section</th><th style="width:31%">Shared rows</th><th style="width:26%">MDK2 adds</th><th>The Witness adds</th></tr></thead>
+    <tbody>
+      <tr><td>Co-op rules <span class="pill host">host</span></td><td>Who can see my lobby; player limit</td><td>Friendly fire, difficulty, co-op save every, back to level's hero</td><td>See through players in the way of a puzzle</td></tr>
+      <tr><td>Players and interface <span class="pill you">you</span></td><td>Your colour, name tags, text chat, pings</td><td>Player outlines, cutscene timer, friends in minigames, emote and character wheels</td><td>Appearance (from its own tab)</td></tr>
+      <tr><td>Voice and sound <span class="pill you">you</span></td><td>Voice chat, push-to-talk key, microphone, output, voice volume, mic volume, hearing range <span class="pill host">host</span></td><td>Effects, music, speech</td><td>Radio range, radio sound, handheld radio, game volume</td></tr>
+      <tr><td>Controls <span class="pill you">you</span></td><td>Key bindings by press-a-key, gamepad on/off</td><td>WASD scheme</td><td>Mouse speed, invert, smoothing, look magnetism (game options stored in each save)</td></tr>
+      <tr><td>Display <span class="pill you">you</span></td><td>Screen mode, resolution, frame limit</td><td>none</td><td>Render quality and detail, brightness, field of view, reticle, vignetting</td></tr>
+      <tr><td>Network <span class="pill you">you</span></td><td>Port, find games on LAN, use Tailscale, open router port automatically, internet address in invites</td><td>none</td><td>none</td></tr>
+      <tr><td>Launcher <span class="pill you">you</span></td><td>Show at start, check for updates, offer pre-releases</td><td>Developer keys</td><td>Developer menu, keep running when unfocused</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="rule-list" style="margin-top:14px">
+    <li data-id="E1"><p>Every change is saved at once. Each section has "Reset section".</p></li>
+    <li data-id="E2"><p>A row the host decides carries a <span class="pill host">host decides</span> tag. In a lobby, a guest sees the host's value, greyed.</p></li>
+    <li data-id="E3"><p>Numbers use sliders with units, choices use choosers, keys use press-a-key capture that refuses duplicates and F1. No typed numbers except the port.</p></li>
+    <li data-id="E4"><p>The same setting has the same name in the launcher, the in-game menu and the quick guide.</p></li>
+  </ul>
+
+  <h3>F. Saves, About and messages</h3>
+  <ul class="rule-list">
+    <li data-id="F1"><p><b>Saves</b> lists co-op saves with who played, progress and when, then a <b>New game</b> slot (MDK2: level and checkpoint; The Witness: parts of the map done). Actions: Host this save, Play solo, Back up, Delete (asks once, in the page).</p></li>
+    <li data-id="F2"><p><b>About</b> holds the version, updates (check now, install, roll back, auto-check), the quick guide, Report a problem, links and credits.</p></li>
+    <li data-id="F3"><p>An available update shows as a banner on Play with Update and What's new. Updating never interrupts a lobby or a running game.</p></li>
+    <li data-id="F4"><p>Every failure message says what happened, names the person or setting involved, and offers the next step as a button: Try again, Update, Fix firewall, Send diagnostics.</p></li>
+  </ul>
+
+  <h3>G. Setup</h3>
+  <ul class="rule-list">
+    <li data-id="G1"><p>Setup finds every install it can (Steam libraries, GOG, Epic manifests, the Overhaul build) and shows them as cards with a build check. Browse is the fallback.</p></li>
+    <li data-id="G2"><p>One state-driven button, as both Setups already have: Install, Update, Repair, Up to date, Needs attention. Uninstall restores the originals and keeps saves.</p></li>
+    <li data-id="G3"><p>Three ticked options before Install: desktop shortcut; <b>allow hosting through Windows Firewall</b> on Private and Public networks (one admin prompt); <b>open invite links in the launcher</b> (current user only, no admin). Uninstall removes all three.</p></li>
+    <li data-id="G4"><p>The last screen has Play as its primary button.</p></li>
+  </ul>
+
+  <div class="callout"><p><b>What stays per game.</b> Art, colours, fonts and wording tone; the What to play and New game slots; game-specific rows inside the fixed sections; the in-game overlay. A new mod copies the structure and fills the slots.</p></div>
+</section>
+
+<section id="ingame">
+  <div class="sec-head"><span class="eyebrow">05</span><h2>In the game: keys, menus and the HUD</h2></div>
+  <p>The same thinking, applied once the game is running. Today the two mods give the same key different jobs: B is push to talk in MDK2 and ink colour in The Witness; H is the emote wheel in one and the voice channel in the other. Ping, push to talk and the emote wheel sit on different keys in each. A player who moves from one mod to the other has to relearn the basics.</p>
+  <p>MDK2's co-op keys follow common conventions and are the more settled set, so they become the standard. The Witness moves to match. Keys that only one game needs (revive, character wheel, drawing, radio, sky TV) stay with that game, off the shared keys.</p>
+
+  <div class="kbbar">
+    <div class="seg" id="kbSeg" role="group" aria-label="Keyboard view">
+      <button type="button" data-v="mdk2now" aria-pressed="true">MDK2 today</button>
+      <button type="button" data-v="witnow" aria-pressed="false">Witness today</button>
+      <button type="button" data-v="mdk2std" aria-pressed="false">Standard: MDK2</button>
+      <button type="button" data-v="witstd" aria-pressed="false">Standard: Witness</button>
+    </div>
+  </div>
+  <div class="kbwrap"><div class="kb" id="kb" aria-label="Keyboard map"></div><div class="kbmouse" id="kbm"></div></div>
+  <div class="legend"><span><i style="background:var(--core);border-color:var(--core)"></i>Shared co-op key, same in every mod</span><span><i style="background:var(--coop);border-color:var(--coop)"></i>This mod's own co-op key</span><span><i style="background:var(--tint)"></i>The game's own controls</span><span><i style="border-style:dashed;border-color:var(--ink-2)"></i>Developer only</span><span id="clashLegend"><i style="background:var(--bad);border-radius:50%;border-color:var(--bad)"></i>Does something else in the other mod</span></div>
+  <div class="kbinfo" id="kbinfo" aria-live="polite">Point at a key, or tab to it, to read what it does.</div>
+
+  <h3>What moves</h3>
+  <div class="tbl"><table>
+    <thead><tr><th style="width:24%">Action</th><th style="width:18%">MDK2 today</th><th style="width:18%">Witness today</th><th>Standard (every mod)</th></tr></thead>
+    <tbody>
+      <tr><td>Quick guide</td><td class="was">hold F1</td><td class="was">hold F1</td><td class="std">hold F1 (already shared)</td></tr>
+      <tr><td>Text chat</td><td class="was">T</td><td class="was">T</td><td class="std">T (already shared)</td></tr>
+      <tr><td>Ping</td><td class="was">V or middle mouse</td><td class="was">P</td><td class="std">V or middle mouse</td></tr>
+      <tr><td>Push to talk</td><td class="was">B</td><td class="was">N</td><td class="std">B or mouse side button</td></tr>
+      <tr><td>Emote wheel</td><td class="was">hold H</td><td class="was">hold G</td><td class="std">hold H</td></tr>
+      <tr><td>Player list</td><td class="was">Options &gt; Co-op &gt; Players</td><td class="was">F5</td><td class="std">hold Tab, with mute, volume, watch and (host) kick</td></tr>
+      <tr><td>Watch another player</td><td class="was">left mouse while downed</td><td class="was">V, then [ and ]</td><td class="std">choose them in the player list, then [ and ] for previous and next</td></tr>
+      <tr><td>Mark a problem for a bug report</td><td class="was">F2</td><td class="was">F2</td><td class="std">F2 (already shared)</td></tr>
+      <tr><td>Developer menu</td><td class="was">F5 to F9 when turned on</td><td class="was">F8 when turned on</td><td class="std">where they are, working only when developer mode is on, never on a shared key</td></tr>
+      <tr><td>Witness: next voice channel</td><td class="was">n/a</td><td class="was">H</td><td class="std">Y (frees H for the emote wheel)</td></tr>
+      <tr><td>Witness: ink colour</td><td class="was">n/a</td><td class="was">B</td><td class="std">mouse wheel while drawing (frees B for talking)</td></tr>
+      <tr><td>MDK2 Modern preset: open inventory</td><td class="was">F or Tab</td><td class="was">n/a</td><td class="std">F only (frees Tab for the player list)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:8px">Only the defaults move. A key a player has already changed stays as they set it, and the next launcher start lists the moved keys once in What's new.</p>
+
+  <h3>H. Keys and controller</h3>
+  <ul class="rule-list">
+    <li data-id="H1"><p>The <b>shared co-op keys</b> above have the same default in every mod. A new mod starts from this set.</p></li>
+    <li data-id="H2"><p>A game's own co-op actions may use any other key, never a shared key, and never a key the game itself uses in any of its control presets.</p></li>
+    <li data-id="H3"><p>Holding opens and releasing acts for wheels, talking, the player list and the guide. Toggles are a single press. This is the same in every mod.</p></li>
+    <li data-id="H4"><p>Every key can be changed on the Controls page with press-a-key. Conflicts are checked within the groups of actions used together, as MDK2's Controls page already does. F1 is fixed.</p></li>
+    <li data-id="H5"><p>The quick guide, the Controls page and the launcher read the same binding table, so they never disagree. The Witness already works this way; parts of MDK2's guide are hand-written and will be generated.</p></li>
+    <li data-id="H6"><p><b>Controller</b>: every co-op action works from a pad. The full rules are in section K below.</p></li>
+  </ul>
+
+  <h3>I. Menus and the HUD</h3>
+  <ul class="rule-list">
+    <li data-id="I1"><p>One <b>Co-op</b> entry in the game's options menu, with the same sections and names as the launcher's Settings, plus a <b>Session</b> page: players, invite friends, copy invite, save now (host), leave. MDK2 has this as Options &gt; Co-op; its pages are renamed to match.</p></li>
+    <li data-id="I2"><p>The Witness has no in-game settings today; changes are made in the launcher and need a restart. For the beta its player list (now F5) becomes the hold-Tab panel with the session actions, and the toggles that are cheap to apply live (voice volumes, name tags, partner picture) move there. Everything else stays in the launcher, marked "applies next start".</p></li>
+    <li data-id="I3"><p><b>The player list</b> has one row per player: colour, name, host mark, ping, a speaking light, and where they are (area or distance) or their state (loading, down, watching). With the mouse: mute, volume, watch, and for the host, kick.</p></li>
+    <li data-id="I4"><p><b>Screen zones</b>: the player strip at top left; short notices at top centre (joined, left, saved), at most three, gone after 4 s; chat at bottom left; at bottom centre, banners that need an answer or a wait (vote to skip, reconnecting, waiting for players). Name tags, pings and typing dots live in the world. Each game lists the areas its own HUD uses, and co-op stays out of them.</p></li>
+    <li data-id="I5"><p><b>One colour per player, everywhere</b>: lobby, name tag, chat name, ping, ink and outline. It is given in join order from a palette that reads on both light and dark scenes. Players can change it under Players and interface.</p></li>
+    <li data-id="I6"><p><b>The same words in every mod</b> for the same events: "Fox joined", "Fox left", "Lost Fox, waiting up to 30 s", "Reconnecting to Fox", "Fox has a different version (v0.4.0)". One shared wording file, as the launcher messages have.</p></li>
+    <li data-id="I7"><p>Esc never leaves a co-op game without one confirmation that says what happens: "The others keep playing", or for the host, "Everyone returns to the lobby". The game keeps running behind any co-op menu, and the menu says so.</p></li>
+    <li data-id="I8"><p>Text stays readable at 1280 x 720 and scales with the window. The Witness already has a test that checks text size and that every button is on screen; both mods run it.</p></li>
+  </ul>
+</section>
+
+<section id="managers">
+  <div class="sec-head"><span class="eyebrow">06</span><h2>Mod managers and loaders</h2></div>
+  <p>Many players will never run our Setup. They will install through Vortex from Nexus, through Mod Organizer 2, through a Linux tool like Lutris or Heroic, or by unzipping into the game folder. All of these work the same way: they copy files into place, and later remove exactly the files they copied. So the standard is one sentence. <b>Copying the package's files must be a complete install, removing them must be a complete uninstall, and the mod must still know what it is and who installed it.</b> Setup stays the friendliest route, but it must never be the only one.</p>
+
+  <div class="grid2">
+    <div class="finding"><b>Managers copy files, nothing more</b><p>Vortex deploys a mod by hard-linking the archive's files into the game folder, mirroring the archive's folders, and can deploy to the game's root. A game it knows nothing about needs a small game extension; neither MDK2 nor The Witness has one today. Nexus reportedly stopped work on its newer cross-platform app in 2026 and is focusing on Vortex.</p><div class="so"><a href="https://www.nexusmods.com/site/mods/1311">Vortex extension example</a> · <a href="https://www.gamingonlinux.com/2025/09/nexus-mods-app-0-17-2-brings-early-work-on-a-built-in-downloads-page-and-performance-improvements/page=1/">GamingOnLinux</a></div></div>
+    <div class="finding"><b>Writing into the game folder causes trouble</b><p>When a running program changes a file a manager deployed, Vortex breaks the link and asks the player about "external changes" at the next deploy. Players lose files by picking the wrong answer. Mod Organizer 2 diverts such writes to its overwrite folder instead.</p><div class="so"><a href="https://github.com/Nexus-Mods/Vortex/wiki/MODDINGWIKI-Users-General-Managing-External-Changes/Home">Vortex wiki: external changes</a></div></div>
+    <div class="finding"><b>Mod Organizer 2 adds games through a plugin</b><p>A new game is a short Python file in MO2's <code>basic_games</code> plugin. Files that must sit in the game's root folder, such as proxy DLLs, need the Root Builder plugin.</p><div class="so"><a href="https://github.com/ashemedai/modorganizer-basic_games">basic_games</a> · <a href="https://www.nexusmods.com/skyrimspecialedition/articles/6614">Root Builder</a></div></div>
+    <div class="finding"><b>Proxy DLLs share a small set of names</b><p>Ultimate ASI Loader, the common loader for "drop-in" fixes, works as <code>dinput8.dll</code>, <code>dsound.dll</code>, <code>winmm.dll</code>, <code>version.dll</code> and others. Two mods using the same name overwrite each other unless one loads the other.</p><div class="so"><a href="https://www.github.com/ThirteenAG/Ultimate-ASI-Loader">Ultimate ASI Loader</a></div></div>
+  </div>
+
+  <h3>Where the two mods stand</h3>
+  <div class="tbl"><table>
+    <thead><tr><th style="width:17%">Check</th><th style="width:27%">MDK2 today</th><th style="width:27%">Witness today</th><th>Standard</th></tr></thead>
+    <tbody>
+      <tr><td>Unzip and play</td><td class="was">Yes: <code>dinput8.dll</code> and <code>coop\coop.lua</code> are copied in. The mod adds its own loader line to the game's settings at first start.</td><td class="was">No: the game's <code>AnselSDK64.dll</code> must be renamed to <code>AnselSDK64_real.dll</code> before the proxy goes in. A manager cannot rename game files.</td><td class="std">Yes, for every mod: the package mirrors the game folder and nothing is renamed or patched.</td></tr>
+      <tr><td>Which DLL it replaces</td><td class="was">A Windows system DLL the game folder does not contain</td><td class="was">A file the game ships. A Steam update or "verify files" puts the original back and silently turns co-op off.</td><td class="std">A Windows DLL the game imports and does not ship. Steam never touches it.</td></tr>
+      <tr><td>Another mod already uses that name</td><td class="was">Setup keeps it as <code>dinput8.dll.coop-original</code> but the mod never loads it, so that mod stops working</td><td class="was">n/a</td><td class="std">Chain-loaded: both work.</td></tr>
+      <tr><td>Writes in the game folder while running</td><td class="was">The updater's <code>.previous</code> backups and <code>coop\unsupported-build.txt</code></td><td class="was"><code>witness_coop.cfg</code>, the player's settings</td><td class="std">Nothing. Settings, logs and backups live in <code>%LOCALAPPDATA%\&lt;mod&gt;</code>.</td></tr>
+      <tr><td>Describes itself</td><td class="was">File lists hard-coded in the Setup scripts</td><td class="was">The same</td><td class="std">A <code>coop-mod.json</code> manifest in the package, and a version on every DLL and exe.</td></tr>
+      <tr><td>Installed by a manager</td><td class="was">Setup reports unknown files; the in-game updater replaces them anyway</td><td class="was">The same</td><td class="std">Recognised. The updater points to the manager instead of fighting it.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>J. Rules</h3>
+  <ul class="rule-list">
+    <li data-id="J1"><p><b>Drop-in package.</b> The release zip's files sit at the paths they take in the game folder. Copying them is a full install; deleting them is a full uninstall. No step renames, edits or patches a file the game ships. Anything the mod needs outside the game folder, it sets up itself at first start and copes with being removed.</p></li>
+    <li data-id="J2"><p><b>Proxy a system DLL the game imports but does not ship</b>, and load the real one from the Windows system folder, as MDK2's <code>dinput8.dll</code> does. Prefer a name graphics tools do not use: not <code>dxgi</code> or <code>d3d11</code>, which ReShade, Special K and DXVK take. For The Witness, <code>winmm.dll</code> or <code>dsound.dll</code> qualify: the game imports both.</p></li>
+    <li data-id="J3"><p><b>Chain-load, don't evict.</b> If a file with the proxy's name is already there and is not ours, Setup keeps it as <code>&lt;name&gt;.chain.dll</code> and our proxy loads it after itself, so ASI loaders and fixes keep working. The diagnostics report what was chained.</p></li>
+    <li data-id="J4"><p><b>Nothing written to the game folder at run time.</b> Settings, logs, crash dumps, update backups and markers go to <code>%LOCALAPPDATA%\&lt;mod&gt;\</code>. Existing settings found in the game folder are moved there once.</p></li>
+    <li data-id="J5"><p><b>The package describes itself</b> in <code>coop-mod.json</code>: id, name, version, the game's store ids, supported game builds by exe hash, every file with its SHA-256 and destination, the proxy name, the Proton override needed, the homepage and the update source. Setup, the updater, the diagnostics and any manager or script read this one file. Every DLL and exe also carries its version in its Windows file properties.</p></li>
+    <li data-id="J6"><p><b>Know who installed it.</b> Setup leaves receipts. Files without receipts that match a release's hashes were installed by a manager or by hand. A file with more than one hard link was almost certainly placed by Vortex, which deploys that way. Exactly which markers each manager leaves is checked when this is built. Setup then shows "Installed by a mod manager" with Play, instead of "Needs attention".</p></li>
+    <li data-id="J7"><p><b>The updater defers to the manager.</b> It still checks for new versions. When a manager installed the mod, it shows "Update it in Vortex" with the Nexus link instead of replacing files.</p></li>
+    <li data-id="J8"><p><b>One version everywhere.</b> GitHub Releases is the source. Nexus gets the identical zip with the identical version string, named <code>&lt;mod&gt;-&lt;version&gt;.zip</code>, so Vortex's own update check agrees with ours.</p></li>
+    <li data-id="J9"><p><b>Scriptable Setup.</b> The same verbs everywhere: <code>status --json</code>, <code>install &lt;game folder&gt; --yes</code>, <code>uninstall</code>, with documented exit codes. This applies to Setup.exe and to <code>install-linux.sh</code>, for Lutris and Heroic install scripts and anyone automating it. On Linux, Setup prints the exact Proton launch option from the manifest.</p></li>
+    <li data-id="J10"><p><b>Wrong build or missing pieces never crash the game.</b> Co-op turns itself off and says why in the launcher, as MDK2 already does for an unknown build.</p></li>
+  </ul>
+  <div class="callout"><p><b>Next:</b> a Vortex game extension and an MO2 <code>basic_games</code> plugin for each game. Both are short, mostly game detection plus "deploy to the game root", and both read <code>coop-mod.json</code>. Once J1 to J6 hold, they are small.</p></div>
+</section>
+
+<section id="deck">
+  <div class="sec-head"><span class="eyebrow">07</span><h2>Steam Deck and controllers</h2></div>
+  <p>Everything in this standard works from a controller, and the whole session works on a Steam Deck in Game Mode: press Play in Steam, host or join, play, return to the lobby, all without a keyboard, a mouse or the desktop. Valve's Deck checks ask for the same things: full controller support with the right button icons, the on-screen keyboard when text is needed, and text that is legible at the Deck's 1280 x 800.</p>
+  <div class="grid2">
+    <div class="finding"><b>The Witness misses the first step today</b><p>On a Deck, its README asks players to add the launcher as a non-Steam game with a compatibility setting. In Game Mode, few will get that far. MDK2 already opens its launcher when Play is pressed, because the launcher runs inside the game.</p></div>
+    <div class="finding"><b>Moving the Witness DLL adds one Proton setting</b><p>Proton uses its own copy of Windows DLLs such as <code>winmm</code> unless told otherwise, so a system-DLL proxy needs a DLL override. MDK2 already asks players to type <code>WINEDLLOVERRIDES</code> into Steam. The install can write the same override into the game's own Proton settings instead, so nobody types anything.</p></div>
+    <div class="finding"><b>Steam can show its keyboard for us</b><p>When the game runs from Steam, the Steam API can open the floating on-screen keyboard over a text field and report when it closes. That covers chat, names and invites. Copies from GOG or Epic need our own fallback.</p><div class="so"><a href="https://luasteam.readthedocs.io/en/stable/auto/utils.html">Steam utils API (binding docs)</a></div></div>
+    <div class="finding"><b>The Deck looks like an Xbox pad by default</b><p>With Steam's default gamepad template, a game sees the Deck's controls as an Xbox controller. A mod that reads that controller works on the Deck, and on most PC pads, with no Deck-specific code. Anyone can also publish a community controller layout for a game in Steam.</p><div class="so"><a href="https://destructoid.com/?p=289844">Deck Verified criteria</a></div></div>
+  </div>
+
+  <h3>K. Rules</h3>
+  <ul class="rule-list">
+    <li data-id="K1"><p><b>Play in Steam opens the co-op launcher</b>, Deck Game Mode included, with no non-Steam shortcut. The Witness game, started without a session from its launcher, hands over to the launcher itself, as it already does for Steam invites. The whole session stays inside the one Steam launch, so playtime, the overlay and the Deck's controls keep working. This needs a live check on a Deck.</p></li>
+    <li data-id="K2"><p><b>No launch options to type.</b> The Linux install writes the DLL override for the game's exe into the game's Proton prefix (Wine's per-app DLL overrides in the registry). The launch option stays in the README as the fallback, and the diagnostics report whether the override is in place.</p></li>
+    <li data-id="K3"><p><b>Launchers fully work with a pad.</b> Stick or D-pad moves focus, A confirms, B goes back, LB and RB switch tabs, X and Y run the actions shown beside them, and Start presses the primary button (Open lobby, Join, Start game). MDK2's launcher already reads the pad inside the game. The Witness launcher reads the controller itself and drives its own focus.</p></li>
+    <li data-id="K4"><p><b>One co-op pad layer, the same in every mod</b>, built on View/Back so it never fights a game's own pad layout. Tap View to ping. Hold View for the player list, and while it is held: D-pad up for the emote wheel (pick with the right stick), D-pad down for chat, D-pad left and right to watch the previous and next player. Each mod checks its game's own pad layout before taking any other button. Checked for The Witness: the game's controller hints use A, B, X, Y, the bumpers, the stick clicks and the D-pad, but never View/Back, so the layer is clear. The game does use the D-pad, so the mod swallows D-pad presses while View is held. MDK2 already uses View/Back for ping.</p></li>
+    <li data-id="K5"><p><b>Voice on a pad</b>: open mic with the voice gate is the default when the last input came from a pad. Push to talk can be bound to a free stick click.</p></li>
+    <li data-id="K6"><p><b>Text without a keyboard.</b> Chat, the player name and the paste box open Steam's floating keyboard when Steam is running, and our own on-screen keyboard otherwise. A quick-chat wheel (Ready, Wait for me, Over here, Come look at this, Thanks) covers most messages with no typing. On a Deck, joining should rarely need typing at all: Steam friends and the Join list find the game.</p></li>
+    <li data-id="K7"><p><b>The right button icons.</b> Hints show pad buttons when the last input came from a pad and keys when it came from the keyboard, and switch at once. Xbox icons by default; PlayStation and Deck icons when the pad type is known.</p></li>
+    <li data-id="K8"><p><b>Fits 1280 x 800.</b> Launchers, menus and the HUD fit the Deck's 16:10 screen with text at the I8 minimum. The Witness launcher's fixed window becomes resizable and fills the screen in Game Mode.</p></li>
+    <li data-id="K9"><p><b>A published Steam controller layout per game</b>, which maps the Deck's back buttons to push to talk, ping and the player list. It is optional for players, since the default template already works.</p></li>
+    <li data-id="K10"><p><b>Tested like everything else.</b> T0: focus navigation, the pad layer and glyph switching, driven by recorded pad states. T1 in the lab: the mods' pad-injection hooks (MDK2 has one) drive a launcher and a co-op action. A real Steam Deck session is the last gate.</p></li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var dev=document.getElementById('dev'), stage=document.getElementById('stage');
+function fit(){var w=stage.clientWidth, s=w/960; dev.style.transform='scale('+s+')'; stage.style.height=(600*s)+'px';}
+if(window.ResizeObserver){new ResizeObserver(fit).observe(stage);} window.addEventListener('resize',fit); fit();
+
+var GAMES={
+ mdk2:{t1:'MDK2',t1b:'HD',t2:'Online co-op',ver:'v0.4.1',next:'v0.4.2',port:27900,prefix:'MDK2',product:'MDK2 Co-op',you:'Cesium',
+   wtp:[['Start','Level 3, checkpoint 2'],['Players','up to 16'],['Friendly fire','off']],
+   saves:[{a:'Level 4  ·  Kurt',b:'Fox, Cesium, Kit',c:'2 days ago',p:.36},{a:'Level 2  ·  Max',b:'Fox, Cesium',c:'12 Oct',p:.18},{a:'Level 7  ·  Doctor Hawkins',b:'Cesium, Jun, Mara, Theo',c:'3 Sep',p:.64}],
+   newGame:['Start at level','Level 1  ·  Kurt'],newGame2:['Checkpoint','Checkpoint 1 of 4'],
+   rules:[['tog','Friendly fire','The host\'s choice counts',0,'h'],['ch','Difficulty','',['Easy','Normal','Hard','Custom'],'h',1],['ch','Co-op save every','',['1 min','2 min','5 min','10 min'],'h',1],['tog','Back to level\'s hero','After a level you switched hero in',1,'h']],
+   iface:[['tog','Player outlines','Your friends through walls',1],['tog','Cutscene timer','Time left, with the skip vote',1],['tog','Friends in minigames','See the others as ghosts',1],['tog','Emote wheel','',1],['tog','Character wheel','Switch hero at any time',1]],
+   sound:[['sl','Effects','',80,'%'],['sl','Music','',60,'%'],['sl','Speech','',90,'%']],
+   controls:[['ch','Scheme','',['Classic','WASD, Space to jump'],'y',1]],
+   display:[],
+   launcher:[['tog','Developer keys','F5 to F9: checkpoints, spawns, debug menu',0]]},
+ witness:{t1:'The Witness',t1b:'',t2:'co-op',ver:'v0.9.0-beta.1',next:'v0.9.0-beta.2',port:47100,prefix:'WIT',product:'The Witness Co-op',you:'Cesium',
+   wtp:[['Mode','Co-op'],['Start','New game, Town and Keep done'],['Race goal','none']],
+   saves:[{a:'Quarry, Bunker',b:'Fox, Cesium',c:'yesterday',p:.41},{a:'Desert, Symmetry',b:'Cesium, Kit, Jun',c:'4 days ago',p:.22},{a:'Mountain',b:'Fox, Cesium, Mara',c:'19 Oct',p:.88}],
+   newGame:['Parts of the map done','Town, Keep'],newGame2:['Lasers lit','2 of 11'],
+   rules:[['tog','See through players','When one stands in the way of a puzzle',1,'h']],
+   iface:[['ch','Appearance','',['Teal','Amber','Violet','Lime'],'y',0]],
+   sound:[['tog','Handheld radio','Hold the radio key to transmit',1],['sl','Radio range','0 is unlimited',0,' m'],['tog','Radio sound when far away','',1],['sl','Game volume','',100,'%']],
+   controls:[['sl','Mouse speed, looking','',50,''],['sl','Mouse speed, on a puzzle','',45,''],['tog','Invert up and down','',0],['tog','Look magnetism','',1]],
+   display:[['ch','Render quality','',['Low','Medium','High','Ultra'],'y',2],['sl','Field of view','',60,'°'],['sl','Brightness','',100,'%']],
+   launcher:[['tog','Developer menu (F8)','',0],['tog','Keep running when unfocused','Two windows on one PC',0]]},
+ template:{t1:'Game',t1b:'',t2:'co-op',ver:'v0.1.0',next:'v0.1.1',port:40000,prefix:'GAME',product:'Your Game Co-op',you:'Cesium',
+   wtp:[['Slot','What to play (game-specific)'],['Players','up to N']],
+   saves:[{a:'Save name (game-specific)',b:'Who played',c:'When',p:.5},{a:'Another save',b:'Who played',c:'When',p:.2}],
+   newGame:['New game slot','Game-specific picker'],newGame2:['','' ],
+   rules:[['slot','Game-specific co-op rules go here, tagged "host decides"']],
+   iface:[['slot','Game-specific interface rows']],sound:[['slot','Game-specific sound rows']],controls:[['slot','Game-specific control rows']],display:[['slot','Game-specific display rows']],launcher:[]}
+};
+
+var SECTIONS=[['coop','Co-op rules'],['iface','Players and interface'],['sound','Voice and sound'],['controls','Controls'],['display','Display'],['net','Network'],['launcher','Launcher']];
+
+var S;
+function fresh(){var sk=S?S.skin:'mdk2';S={skin:sk,tab:'play',mode:'host',view:'home',name:'Cesium',sel:null,paste:'',scan:{},scanning:false,lobbyRole:null,lobbyHost:null,members:[],chat:[],ready:false,toast:'',toastT:0,clipDone:false,updDone:false,updating:0,ver:null,sec:'coop',set:{},keyWait:null,saveSel:0,privacy:'open',inviteShown:false,timers:[]};}
+fresh();
+function sc(){return{steam:$('sc-steam').checked,ts:$('sc-ts').checked,lan:$('sc-lan').checked,clip:$('sc-clip').checked,upd:$('sc-upd').checked,net:$('sc-net').value};}
+function $(id){return document.getElementById(id);}
+function G(){return GAMES[S.skin];}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function later(fn,ms){var t=setTimeout(fn,ms);S.timers.push(t);}
+function clearTimers(){S.timers.forEach(clearTimeout);S.timers=[];}
+function toast(msg){S.toast=msg;clearTimeout(S.toastT);S.toastT=setTimeout(function(){S.toast='';render();},2600);}
+
+/* ---------- discovery model ---------- */
+function candidates(){
+  var c=sc(),g=G(),L=[];
+  if(c.lan)L.push({id:'fox',name:'Fox',route:'LAN',cls:'lan',st:'In lobby · 2 of 16',ping:'3 ms',src:'lan',recent:'played 2 days ago'});
+  if(c.ts){L.push({id:'kit',name:'Kit',route:'Tailscale',cls:'ts',st:'In lobby · 1 of 16 · kit-desktop',ping:'38 ms',src:'ts'});
+           L.push({id:'jun',name:'Jun',route:'Tailscale',cls:'ts',st:'Runs '+(S.skin==='witness'?'v0.8.3':'v0.3.9')+', you have '+ver()+'. Jun needs to update.',ping:'',src:'ts',mis:true});}
+  if(c.steam)L.push({id:'mara',name:'Mara',route:'Steam friend',cls:'steam',st:'In game · 3 of 16 · joining is open',ping:'',src:'steam'});
+  L.push({id:'theo',name:'Theo',route:'Recent',cls:'recent',st:'Not hosting · last played 3 Sep',ping:'',src:'recent',off:true});
+  return L;
+}
+function ver(){return S.ver||G().ver;}
+function startScan(){
+  S.scan={lan:'busy',ts:sc().ts?'busy':'off',steam:sc().steam?'busy':'off',recent:'busy'};S.scanning=true;
+  later(function(){S.scan.lan='done';render();},450);
+  if(sc().ts)later(function(){S.scan.ts='done';render();},900);
+  if(sc().steam)later(function(){S.scan.steam='done';render();},1250);
+  later(function(){S.scan.recent='done';S.scanning=false;render();},700);
+}
+function visible(){return candidates().filter(function(x){return S.scan[x.src]==='done';});}
+
+/* ---------- paste recogniser (the B7 box) ---------- */
+function recognise(s){
+  s=(s||'').trim(); if(!s)return null;
+  var g=G(), m;
+  m=s.match(/#?((?:MDK2|WIT|GAME)-[0-9A-Z]{5}(?:-[0-9A-Z]{1,5})+)/i);
+  if(m){var code=m[1].toUpperCase(); if(code.indexOf(g.prefix+'-')!==0)return{bad:'That invite is for '+(code.indexOf('WIT')===0?'The Witness':code.indexOf('MDK2')===0?'MDK2':'another game')+'.'};
+        if(code.replace(/-/g,'').length<(g.prefix.length+20))return{bad:'This code is incomplete. Ask for the whole invite again.'};
+        return{ok:'Invite from Fox: LAN, Tailscale and internet routes. Press Join.',host:'Fox'};}
+  if(/^\d{17,19}$/.test(s))return{ok:'Steam lobby number. Joins through Steam.',host:'Steam lobby'};
+  m=s.match(/^(\d{1,3}(?:\.\d{1,3}){3})(?::(\d{1,5}))?(?:\/([A-Z0-9]{4,8}))?$/i);
+  if(m){var oct=m[1].split('.').map(Number); if(oct.some(function(o){return o>255;}))return{bad:'That is not a valid address.'};
+        var kind=oct[0]===100&&oct[1]>=64&&oct[1]<=127?'Tailscale address':oct[0]===10||oct[0]===192&&oct[1]===168||oct[0]===172&&oct[1]>=16&&oct[1]<=31?'Local network address':'Internet address';
+        return{ok:kind+' '+m[1]+', port '+(m[2]||g.port)+(m[2]?'':' (default)')+(m[3]?', with lobby code':'')+'.',host:m[1]};}
+  if(/^[a-z0-9][a-z0-9-]*(\.[a-z0-9-]+)*$/i.test(s))return{ok:(/\.ts\.net$/i.test(s)||!/\./.test(s)?'Tailscale name ':'Host name ')+s+', port '+g.port+'. Checked when you press Join.',host:s};
+  return{bad:'Not an invite, address or name this launcher knows.'};
+}
+
+/* ---------- lobby simulation ---------- */
+function openLobby(asHost,host){
+  clearTimers(); S.view='lobby'; S.ready=false; S.lobbyRole=asHost?'host':'guest'; S.lobbyHost=asHost?S.name:host;
+  if(asHost){S.members=[{n:S.name+' (you)',host:true,ready:true}];S.chat=[{sys:'Lobby open. Friends can join by any route on the right.'}];
+    later(function(){S.members.push({n:'Fox',ready:false});S.chat.push({sys:'Fox joined over LAN.'});render();},1400);
+    later(function(){S.chat.push({f:'Fox',t:'here! grab a coffee, I\'m ready in a sec'});render();},2600);
+    later(function(){S.members[1].ready=true;S.chat.push({sys:'Fox is ready.'});render();},4200);
+  } else {S.members=[{n:host,host:true,ready:true},{n:S.name+' (you)',ready:false}];S.chat=[{sys:'Joined '+host+'\'s lobby.'},{f:host,t:'hey! press ready when you\'re set'}];}
+  render();
+}
+function wayRows(){
+  var c=sc(),r=[];
+  r.push(c.steam?['ok','Steam friends','Or they use Join game in Steam.','Invite']:['no','Steam','Start the game from Steam to invite Steam friends.',null]);
+  r.push(['ok','Same network','Listed for friends on your Wi-Fi.',null]);
+  r.push(c.ts?['ok','Tailscale','Listed as cesium-pc. Friends on another tailnet need this PC shared with them.',null]:['no','Tailscale','Not installed. Optional: lets friends join over the internet with no router setup.',null]);
+  if(c.net==='upnp')r.push(['ok','Internet','Router opened UDP '+G().port+' until the lobby closes.',null]);
+  else if(c.net==='closed')r.push(['warn','Internet','Your router did not open the port. Turn on UPnP, or forward UDP '+G().port+' to this PC.','How']);
+  else r.push(['warn','Internet','Your internet provider shares your address with other customers, so friends cannot reach you directly. Use Steam or Tailscale.',null]);
+  r.push(['ok','Windows Firewall','Allowed on private and public networks.',null]);
+  return r;
+}
+function inviteCode(){var c=sc(),g=G();var body=['8M2KQ','7XR4D'];if(c.ts)body.push('0PZ9T');if(c.net==='upnp')body.push('HV3CE');if(c.steam)body.push('Q4W1N','5MBZ2');body.push('91A0G');return g.prefix+'-'+body.join('-');}
+
+/* ---------- render ---------- */
+function render(){
+  var c=sc(),g=G(),h='';
+  dev.setAttribute('data-skin',S.skin);
+  dev.classList.toggle('wide',S.view==='lobby'&&S.tab==='play');
+  h+='<div class="art">'+art()+'<div class="mark"><div class="t1">'+esc(g.t1)+(g.t1b?' <span style="color:#d0d6da;-webkit-text-fill-color:#d0d6da">'+g.t1b+'</span>':'')+'</div><div class="t2">'+esc(g.t2)+'</div><div class="ver">'+esc(ver())+' · up to 16 players</div></div></div>';
+  h+='<div class="main"><div class="tabs" role="tablist">';
+  ['play','saves','settings','about'].forEach(function(t){h+='<button class="tab kh" role="tab" data-act="tab" data-v="'+t+'" aria-selected="'+(S.tab===t)+'">'+(S.tab==='play'&&t==='play'&&S.view==='lobby'?'Lobby':t)+'</button>';});
+  h+='<span class="spacer"></span><span class="ver">'+esc(ver())+'</span></div><div class="body'+(S.tab==='play'&&S.view==='lobby'?' lob':'')+'">';
+  if(S.tab==='play')h+=S.view==='lobby'?lobby():play();
+  else if(S.tab==='saves')h+=saves();
+  else if(S.tab==='settings')h+=settings();
+  else h+=about();
+  h+='</div><div class="foot"><span><b>Enter</b> '+(S.view==='lobby'?(S.lobbyRole==='host'?'start':'ready'):'confirm')+'</span><span><b>Esc</b> '+(S.view==='lobby'?'leave lobby':'back')+'</span><span><b>Tab</b> next</span><span><b>F1</b> quick guide</span></div>';
+  if(S.toast)h+='<div class="toast" role="status">'+esc(S.toast)+'</div>';
+  h+='</div>';
+  var f=document.activeElement, fid=f&&dev.contains(f)?f.id:null, pos=fid&&f.selectionStart;
+  dev.innerHTML=h;
+  if(fid&&$(fid)){$(fid).focus();try{$(fid).setSelectionRange(pos,pos);}catch(e){}}
+  var cl=dev.querySelector('.chat');if(cl)cl.scrollTop=cl.scrollHeight;
+}
+function art(){
+  if(S.skin==='template')return '<div class="slot">GAME ART<br>(per-game slot)</div>';
+  if(S.skin==='witness'){
+    return '<svg class="bgart" viewBox="0 0 360 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="600" fill="#0b0f13"/>'+
+      '<g stroke="#1b2731" stroke-width="10" stroke-linecap="round" fill="none"><path d="M60 120h240M60 200h240M60 280h240M60 360h240M60 120v240M140 120v240M220 120v240M300 120v240"/></g>'+
+      '<path d="M60 360V280h80v-80h80v80h80V120" stroke="#4fd6f3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".95"/><circle cx="60" cy="360" r="17" fill="#4fd6f3"/></svg>';
+  }
+  return '<svg class="bgart" viewBox="0 0 360 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="mg" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#2d6d8c"/><stop offset=".55" stop-color="#14303d"/><stop offset="1" stop-color="#0b1418"/></radialGradient>'+
+    '<pattern id="holes" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="3.2" fill="#0a1216" opacity=".65"/></pattern></defs>'+
+    '<rect width="360" height="600" fill="url(#mg)"/><rect width="360" height="600" fill="url(#holes)"/>'+
+    '<circle cx="180" cy="250" r="150" fill="none" stroke="#3c5560" stroke-width="18"/><circle cx="180" cy="250" r="150" fill="none" stroke="#7d949c" stroke-width="2" stroke-dasharray="3 22"/></svg>';
+}
+function play(){
+  var c=sc(),g=G(),h='';
+  if(c.upd&&!S.updDone){h+=S.updating?'<div class="banner"><span class="grow">Updating to '+g.next+'... '+Math.round(S.updating)+'%<div class="prog"><i style="width:'+S.updating+'%"></i></div></span></div>':
+    '<div class="banner"><span class="grow"><b>'+g.product+' '+g.next+' is ready.</b> <span class="dim">Takes about 10 seconds.</span></span><button class="link" data-act="news">What\'s new</button><button class="ghost sm" data-act="update">Update</button></div>';}
+  if(c.clip&&!S.clipDone&&S.mode!=='solo')h+='<div class="banner"><span class="grow"><b>Fox\'s invite is on your clipboard.</b> <span class="dim">Join Fox\'s game?</span></span><button class="link" data-act="clipno">Not now</button><button class="ghost sm" data-act="clipjoin">Join Fox</button></div>';
+  h+='<div class="field"><label for="nm" class="kh" style="font-size:'+(S.skin==='mdk2'?'18px':'12px')+'">Your name</label><input class="inp" id="nm" value="'+esc(S.name)+'" maxlength="24"></div>';
+  var joinOpen=S.mode==='join';
+  [['host','Host a game','Open a lobby. Friends join you.'],['join','Join a friend','Games near you appear by themselves.'],['solo','Play solo','Plain '+(S.skin==='witness'?'The Witness':S.skin==='mdk2'?'MDK2 HD':'game')+'. Co-op is off for this start.']].forEach(function(t){
+    if(joinOpen&&t[0]!=='join'){return;}
+    h+='<button class="tile" data-act="mode" data-v="'+t[0]+'" aria-pressed="'+(S.mode===t[0])+'"><div class="tn kh">'+t[1]+'</div><div class="tl">'+t[2]+'</div></button>';
+  });
+  if(!joinOpen){
+    var fox=c.lan||c.ts;
+    if(S.mode==='host')h+='<p class="small dim" style="margin:4px 0 0">Steam, your network'+(c.ts?', Tailscale':'')+' and the internet are set up for you in the lobby.</p>';
+    if(S.mode!=='solo'&&fox)h+='<div class="row small" style="margin-top:8px"><span class="dim">Last played with Fox, 2 days ago.</span><span class="badge lan">online</span><button class="link" data-act="rejoin">Rejoin Fox</button></div>';
+    h+='<div class="bottom" style="position:absolute;left:26px;right:26px;bottom:14px"><button class="primary kh" data-act="go">'+(S.mode==='host'?'Open lobby':S.mode==='solo'?'Play solo':'Join')+'</button></div>';
+    return h;
+  }
+  h+='<div class="row" style="justify-content:space-between;margin:2px 0 4px"><div class="cap">Games near you</div><button class="link" data-act="back">Back to host or solo</button></div>';
+  var srcs=[['lan','Local network'],['ts','Tailscale'],['steam','Steam friends'],['recent','Recent']];
+  h+='<div class="sources">'+srcs.map(function(s){var st=S.scan[s[0]]||'off';return '<span class="'+st+'">'+s[1]+(s[0]==='ts'&&st==='off'?' (not installed)':s[0]==='steam'&&st==='off'?' (Steam not running)':'')+'</span>';}).join('')+'</div>';
+  var L=visible();
+  h+='<div class="games" role="listbox" aria-label="Games near you">';
+  if(!L.length)h+='<div class="empty">'+(S.scanning?'Looking...':'No games yet. When a friend hosts, their game shows up here.<br>Or paste their invite below.')+'</div>';
+  L.forEach(function(x){h+='<button class="game'+(x.off?' off':'')+(x.mis?' mis':'')+'" role="option" data-act="pick" data-v="'+x.id+'" aria-pressed="'+(S.sel===x.id)+'"><span class="dot"></span><span><span class="nm">'+esc(x.name)+'</span> <span class="badge '+x.cls+'">'+x.route+'</span><br><span class="st">'+esc(x.st)+'</span></span><span class="rt">'+(x.ping||'')+(x.recent?'<br>'+x.recent:'')+'</span></button>';});
+  h+='</div>';
+  var rc=recognise(S.paste);
+  h+='<div style="margin-top:10px"><input class="inp" id="paste" style="width:100%" placeholder="Paste an invite, a link or an address" value="'+esc(S.paste)+'" autocomplete="off" spellcheck="false">';
+  h+='<div class="recog '+(rc?(rc.ok?'ok':'bad'):'')+'">'+(rc?esc(rc.ok||rc.bad):'<span class="faint">Try: 192.168.1.20 · kit-desktop · 100.84.12.7:'+G().port+' · '+G().prefix+'-8M2KQ-7XR4D-0PZ9T-HV3CE-91A0G</span>')+'</div></div>';
+  var pick=L.filter(function(x){return x.id===S.sel;})[0], label='Pick a game or paste an invite', dis=true;
+  if(rc&&rc.ok){label='Join '+rc.host;dis=false;}
+  else if(pick&&!pick.off&&!pick.mis){label='Join '+pick.name;dis=false;}
+  else if(pick&&pick.mis){label=pick.name+' needs to update';}
+  else if(pick&&pick.off){label=pick.name+' is not hosting';}
+  h+='<div class="bottom"><button class="primary kh" data-act="join"'+(dis?' disabled':'')+'>'+esc(label)+'</button></div>';
+  return h;
+}
+function lobby(){
+  var c=sc(),g=G(),h='<div class="lobby">', host=S.lobbyRole==='host';
+  h+='<div class="col"><div class="cap">Players '+S.members.length+' of 16</div>'+(host?'<div class="small dim" style="margin-bottom:6px">'+(S.privacy==='open'?'Listed on your networks.':'Invite only, not listed.')+' <button class="link" data-act="privacy">Change</button></div>':'')+'<div class="panel">';
+  S.members.forEach(function(m,i){h+='<div class="member"><span class="ic'+(i===1&&S.chat.length>2?' talk':'')+'"></span><span class="nm">'+esc(m.n)+(m.host?' <span class="badge host">host</span>':'')+'</span><span class="rd'+(m.ready?' ok':'')+'">'+(m.host?'':m.ready?'ready':'not ready')+'</span></div>';});
+  h+='</div><div class="cap" style="margin-top:12px">Voice</div><div class="row small"><button class="ghost sm" data-act="mute">Mute me</button><button class="ghost sm" data-act="deaf">Deafen</button><span class="dim">Push to talk: B</span></div>';
+  var notReady=S.members.filter(function(m){return !m.ready;}).map(function(m){return m.n;});
+  h+='<div style="margin-top:auto;display:grid;gap:8px">';
+  if(host)h+='<button class="primary kh" data-act="start"'+(notReady.length?' disabled':'')+'>'+(notReady.length?'Waiting for '+esc(notReady.join(', ')):'Start game')+'</button>';
+  else h+='<button class="primary kh" data-act="ready">'+(S.ready?'Not ready':'Ready')+'</button>';
+  h+='<button class="ghost" data-act="leave">Leave lobby</button></div></div>';
+  h+='<div class="col"><div class="cap">Chat</div><div class="panel chat">'+S.chat.map(function(l){return l.sys?'<p class="sys">'+esc(l.sys)+'</p>':'<p><b>'+esc(l.f)+'</b>  '+esc(l.t)+'</p>';}).join('')+'</div>';
+  h+='<div class="row" style="margin-top:8px"><input class="inp" id="chatin" placeholder="Say something..." autocomplete="off"><button class="ghost" data-act="send">Send</button></div></div>';
+  h+='<div class="col side">';
+  if(host){
+    h+='<div class="cap">Friends can join by</div><div class="panel">';
+    wayRows().forEach(function(w){h+='<div class="way"><span class="i '+w[0]+'">'+(w[0]==='ok'?'✓':w[0]==='warn'?'!':'–')+'</span><span><span class="h">'+w[1]+'</span>'+(w[3]?' <button class="link" data-act="way" data-v="'+w[1]+'">'+w[3]+'</button>':'')+'<br><span class="d">'+esc(w[2])+'</span></span></div>';});
+    h+='</div><div class="code" title="Invite code">'+esc(inviteCode())+'</div><button class="ghost" data-act="copy" style="width:100%">Copy invite</button>';
+  }
+  h+='<div class="cap" style="margin-top:12px">What to play'+(host?'':' (host decides)')+'</div><div class="panel wtp" style="padding:6px 10px">'+G().wtp.map(function(r){return '<div class="row"><span class="dim">'+esc(r[0])+'</span><span>'+esc(r[1])+'</span></div>';}).join('')+(host?'<div class="row"><span></span><button class="link" data-act="tosaves">Change</button></div>':'')+'</div>';
+  h+='</div></div>';
+  return h;
+}
+function sv(key,d){return key in S.set?S.set[key]:d;}
+function rowsFor(sec){
+  var g=G(),shared={
+    coop:[['ch','Who can see my lobby','',['Open to my networks','Invite only'],'h',0],['ch','Player limit','',['2','4','8','16'],'h',3]],
+    iface:[['ch','Your colour','',['Blue','Orange','Green','Violet'],'y',0],['tog','Name tags','Over each player',1],['tog','Text chat','',1],['tog','Pings','Mark a spot for everyone',1]],
+    sound:[['ch','Voice chat','',['Off','Open mic','Push to talk'],'y',2],['key','Push-to-talk key','','B'],['ch','Microphone','',['Default','Headset mic','USB mic'],'y',0],['sl','Voice volume','',100,'%'],['sl','Microphone volume','',100,'%'],['sl','Hearing range','Beyond it the voice fades out',25,' m','h']],
+    controls:[['tog','Gamepad','A pad plays as you',1],['key','Quick guide','Hold to read','F1',1],['key','Text chat','','T'],['key','Ping','','Q']],
+    display:[['ch','Screen','',['Full screen','Window','Borderless'],'y',0],['ch','Resolution','',['1920 x 1080','2560 x 1440','3840 x 2160'],'y',0],['sl','Frame limit','0 is none',0,' fps']],
+    net:[['tog','Find games on my network','Local network, ZeroTier and similar',1],['tog','Find friends on Tailscale','Reads Tailscale\'s list of your devices',1],['tog','Open the router port while hosting','UPnP or NAT-PMP, removed when the lobby closes',1],['tog','Put my internet address in invites','Only when friends can reach it',1],['num','Port','',String(G().port)]],
+    launcher:[['tog','Show launcher at start',S.skin==='mdk2'?'Off: hold Shift while the game starts':'Off: shortcuts start your last choice',1],['tog','Check for updates','Once a day at most; nothing about you is sent',1],['tog','Offer pre-releases','',S.skin==='witness'?1:0]]
+  };
+  return (shared[sec]||[]).concat(g[sec==='coop'?'rules':sec]||[]);
+}
+function settings(){
+  var h='<div class="set"><div class="snav">';
+  SECTIONS.forEach(function(s){h+='<button data-act="sec" data-v="'+s[0]+'" aria-current="'+(S.sec===s[0])+'">'+s[1]+'</button>';});
+  h+='</div><div>';
+  rowsFor(S.sec).forEach(function(r,i){
+    if(r[0]==='slot'){h+='<div class="slotnote">'+esc(r[1])+'</div>';return;}
+    var key=S.skin+':'+S.sec+':'+r[1], scope=(r[0]==='ch'?r[4]:r[0]==='sl'?r[5]:r[4])==='h';
+    h+='<div class="srow"><div><div class="sl">'+esc(r[1])+(scope?'<span class="scope h">host decides</span>':'')+'</div>'+(r[2]?'<div class="sh">'+esc(r[2])+'</div>':'')+'</div><div class="ctl">';
+    if(r[0]==='tog'){var on=sv(key,r[3]);h+='<span class="small dim">'+(on?'On':'Off')+'</span><button class="tog" role="switch" aria-label="'+esc(r[1])+'" aria-checked="'+(!!on)+'" data-act="tog" data-v="'+esc(key)+'"></button>';}
+    else if(r[0]==='ch'){var ix=sv(key,r[5]||0);h+='<div class="chooser"><button data-act="ch" data-v="'+esc(key)+'" data-d="-1" data-n="'+r[3].length+'" aria-label="Previous">‹</button><span>'+esc(r[3][ix])+'</span><button data-act="ch" data-v="'+esc(key)+'" data-d="1" data-n="'+r[3].length+'" aria-label="Next">›</button></div>';}
+    else if(r[0]==='sl'){var v=sv(key,r[3]);var id='sl'+i;h+='<div class="slider"><input type="range" id="'+id+'" min="0" max="'+(r[4]==='%'?150:r[4]===' m'?100:r[4]===' fps'?240:r[4]==='°'?110:100)+'" value="'+v+'" data-key="'+esc(key)+'" data-u="'+esc(r[4])+'" aria-label="'+esc(r[1])+'"><output>'+(r[4]===' fps'&&+v===0?'none':v+r[4])+'</output></div>';}
+    else if(r[0]==='key'){var k=sv(key,r[3]);h+='<button class="keycap'+(S.keyWait===key?' wait':'')+'" data-act="key" data-v="'+esc(key)+'"'+(r[4]?' disabled title="F1 is reserved"':'')+'>'+(S.keyWait===key?'Press a key...':esc(k))+'</button>';}
+    else if(r[0]==='num'){h+='<input class="inp" style="max-width:90px;flex:none" id="port" value="'+esc(r[3])+'" inputmode="numeric" aria-label="Port">';}
+    h+='</div></div>';
+  });
+  h+='<div class="row" style="justify-content:space-between;margin-top:10px"><span class="small faint">Saved as you change it.</span><button class="link" data-act="resetsec">Reset section</button></div></div></div>';
+  return h;
+}
+function saves(){
+  var g=G(),h='<div class="cap">Co-op saves</div><div class="panel">';
+  g.saves.forEach(function(s,i){h+='<button class="save" data-act="save" data-v="'+i+'" aria-pressed="'+(S.saveSel===i)+'"><span class="a">'+esc(s.a)+'</span><span class="c">'+esc(s.c)+'</span><span class="b">'+esc(s.b)+'</span><span class="c">'+Math.round(s.p*100)+'%</span></button>';});
+  h+='</div><div class="row" style="margin-top:10px;gap:8px"><button class="ghost" data-act="hostsave">Host this save</button><button class="ghost" data-act="solosave">Play solo</button><span style="flex:1"></span><button class="link" data-act="backup">Back up</button><button class="link" data-act="del">Delete</button></div>';
+  h+='<div class="cap" style="margin-top:18px">New game</div><div class="panel" style="padding:4px 12px">';
+  [g.newGame,g.newGame2].forEach(function(r){if(r[0])h+='<div class="srow" style="grid-template-columns:1fr auto"><span class="sl">'+esc(r[0])+'</span><span class="chooser" style="width:auto;padding:4px 10px">'+esc(r[1])+'</span></div>';});
+  h+='</div>'+(S.skin==='template'?'<div class="slotnote">The New game picker is a per-game slot.</div>':'')+'<div style="margin-top:10px"><button class="ghost" data-act="hostnew">Host a new game from here</button></div>';
+  return h;
+}
+function about(){
+  var g=G(),c=sc(),h='<div class="kh" style="font-size:'+(S.skin==='mdk2'?'30px':'18px')+'">'+g.product+'</div><div class="dim small">'+ver()+' · open source, MIT</div>';
+  h+='<div class="cap" style="margin-top:16px">Updates</div><div class="panel" style="padding:10px 12px"><div class="row" style="justify-content:space-between"><span>'+(c.upd&&!S.updDone?'<b>'+g.next+'</b> is ready.':'You have the latest version.')+'</span><span class="row" style="gap:6px"><button class="ghost sm" data-act="check">Check now</button>'+(c.upd&&!S.updDone?'<button class="ghost sm" data-act="update">Install update</button>':'')+'<button class="ghost sm" data-act="rollback">Roll back</button></span></div></div>';
+  h+='<div class="cap" style="margin-top:16px">Help</div><div class="panel">';
+  [['Quick guide','Hold F1 in the launcher or the game.','Open'],['Report a problem','Packs your recent logs and settings into one file on your Desktop. Nothing is uploaded.','Send diagnostics'],['Community','Discord for finding players and beta feedback.','Copy link'],['Source and issues','github.com/TommoDotCommo','Copy link']].forEach(function(r){h+='<div class="way" style="grid-template-columns:1fr auto;align-items:center"><span><span class="h">'+r[0]+'</span><br><span class="d">'+r[1]+'</span></span><button class="ghost sm" data-act="aboutbtn" data-v="'+r[2]+'">'+r[2]+'</button></div>';});
+  h+='</div><p class="small faint" style="margin-top:12px">Credits: the co-op mod team and testers. Game by its original developers; this mod is unofficial.</p>';
+  return h;
+}
+
+/* ---------- events ---------- */
+dev.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  var a=b.getAttribute('data-act'),v=b.getAttribute('data-v'),g=G();
+  if(a==='tab'){S.tab=v;}
+  else if(a==='mode'){S.mode=v;S.sel=null;if(v==='join'){clearTimers();startScan();}}
+  else if(a==='back'){S.mode='host';clearTimers();}
+  else if(a==='go'){if(S.mode==='host')openLobby(true);else if(S.mode==='solo')toast('Starting '+(S.skin==='witness'?'The Witness':S.skin==='mdk2'?'MDK2 HD':'the game')+' without co-op.');return render();}
+  else if(a==='pick'){S.sel=v;S.paste='';}
+  else if(a==='join'){var rc=recognise(S.paste);if(rc&&rc.ok){openLobby(false,rc.host==='Steam lobby'?'Mara':/^\d/.test(rc.host)||rc.host.indexOf('-')>0?'Kit':rc.host);S.paste='';return;}
+     var p=visible().filter(function(x){return x.id===S.sel;})[0];if(p){openLobby(false,p.name);return;}}
+  else if(a==='rejoin'||a==='clipjoin'){S.clipDone=true;openLobby(false,'Fox');toast(a==='rejoin'?'Rejoining Fox over LAN.':'Joining Fox from your clipboard invite.');return;}
+  else if(a==='clipno'){S.clipDone=true;}
+  else if(a==='update'){if(S.updating)return;S.tab='play';S.updating=1;var step=function(){S.updating+=12;if(S.updating>=100){S.updating=0;S.updDone=true;S.ver=g.next;toast('Updated to '+g.next+'. Restarted the launcher.');}else later(step,140);render();};later(step,140);}
+  else if(a==='news'){toast('What\'s new: faster joining, fixed voice volume.');}
+  else if(a==='leave'){clearTimers();S.view='home';S.mode='host';toast('You left the lobby.');}
+  else if(a==='start'){toast('Starting in 3... everyone\'s game opens together.');}
+  else if(a==='ready'){S.ready=!S.ready;S.members[1].ready=S.ready;S.chat.push({sys:S.name+(S.ready?' is ready.':' is not ready.')});if(S.ready)later(function(){S.chat.push({sys:S.lobbyHost+' started the game. Starting in 3...'});render();},1600);}
+  else if(a==='send'){var ci=$('chatin');if(ci&&ci.value.trim()){S.chat.push({f:S.name,t:ci.value.trim()});}}
+  else if(a==='mute'){toast('Your microphone is muted.');}
+  else if(a==='deaf'){toast('Deafened: you hear nobody, and you are muted.');}
+  else if(a==='privacy'){S.privacy=S.privacy==='open'?'invite':'open';toast(S.privacy==='open'?'Listed on your network and Tailscale.':'Hidden from lists. Friends need the invite.');}
+  else if(a==='copy'){var msg=S.name+' is hosting '+g.product+'. Join: https://<pages>/join#'+inviteCode();try{navigator.clipboard.writeText(msg).then(function(){},function(){});}catch(_){} toast('Invite copied. Paste it to your friends.');}
+  else if(a==='way'){toast(v==='Steam friends'?'Steam\'s invite window would open here.':'Opens a short guide to forwarding UDP '+g.port+'.');}
+  else if(a==='tosaves'){S.tab='saves';}
+  else if(a==='sec'){S.sec=v;S.keyWait=null;}
+  else if(a==='tog'){S.set[v]=!(b.getAttribute('aria-checked')==='true');}
+  else if(a==='ch'){var n=+b.getAttribute('data-n'),cur=sv(v,null);if(cur===null){var row=rowsFor(S.sec).filter(function(r){return S.skin+':'+S.sec+':'+r[1]===v;})[0];cur=row[5]||0;}S.set[v]=(cur+(+b.getAttribute('data-d'))+n)%n;}
+  else if(a==='key'){S.keyWait=v;}
+  else if(a==='resetsec'){Object.keys(S.set).forEach(function(k){if(k.indexOf(S.skin+':'+S.sec+':')===0)delete S.set[k];});toast('Section reset to defaults.');}
+  else if(a==='save'){S.saveSel=+v;}
+  else if(a==='hostsave'||a==='hostnew'){S.tab='play';openLobby(true);return;}
+  else if(a==='solosave'){toast('Starting this save without co-op.');}
+  else if(a==='backup'){toast('Copied to the backup folder.');}
+  else if(a==='del'){toast('Asks once, in the page, before deleting.');}
+  else if(a==='check'){toast(sc().upd&&!S.updDone?g.next+' is available.':'You have the latest version.');}
+  else if(a==='rollback'){toast('Would restore the previous version, kept from the last update.');}
+  else if(a==='aboutbtn'){toast(v==='Send diagnostics'?'Diagnostics saved to your Desktop.':v==='Open'?'The quick guide opens while F1 is held.':'Link copied.');}
+  render();
+});
+dev.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.id==='nm'){S.name=t.value;}
+  else if(t.id==='paste'){S.paste=t.value;if(t.value)S.sel=null;render();}
+  else if(t.type==='range'){S.set[t.getAttribute('data-key')]=+t.value;var u=t.getAttribute('data-u');t.nextElementSibling.textContent=(u===' fps'&&+t.value===0)?'none':t.value+u;}
+});
+dev.addEventListener('keydown',function(e){
+  if(S.keyWait){e.preventDefault();var k=e.key.length===1?e.key.toUpperCase():e.key;if(k==='Escape'){S.keyWait=null;return render();}
+    if(k==='F1'){toast('F1 is the quick guide. Pick another key.');return render();}
+    var isKey=function(x){return x.indexOf(':controls:')>=0||x.indexOf(':sound:')>=0;};
+    var taken=Object.keys(S.set).some(function(x){return x!==S.keyWait&&isKey(x)&&S.set[x]===k;});
+    if(taken){toast(k+' is already used. Pick another key.');return render();}
+    S.set[S.keyWait]=k;S.keyWait=null;toast('Saved: '+k);return render();}
+  if(e.key==='Enter'&&e.target.id==='chatin'){e.preventDefault();var ci=e.target;if(ci.value.trim()){S.chat.push({f:S.name,t:ci.value.trim()});render();var n=$('chatin');if(n)n.focus();}return;}
+  if(e.key==='Enter'&&e.target.id==='paste'){e.preventDefault();var j=dev.querySelector('[data-act="join"]');if(j&&!j.disabled)j.click();return;}
+  if(e.key==='Escape'){e.preventDefault();if(S.view==='lobby'){clearTimers();S.view='home';S.mode='host';toast('You left the lobby.');}else if(S.mode==='join'){S.mode='host';clearTimers();}else S.tab='play';render();}
+});
+
+document.getElementById('skinSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  [].forEach.call(this.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x===b));});
+  clearTimers();S.skin=b.getAttribute('data-skin');S.ver=null;S.updDone=false;S.updating=0;if(S.view==='lobby'){S.view='home';}if(S.mode==='join')startScan();render();});
+['sc-steam','sc-ts','sc-lan','sc-clip','sc-upd','sc-net'].forEach(function(id){$(id).addEventListener('change',function(){
+  if(id==='sc-clip')S.clipDone=false; if(id==='sc-upd'){S.updDone=false;S.ver=null;}
+  if(S.mode==='join'&&S.view==='home'&&S.tab==='play'){clearTimers();startScan();}
+  if(id==='sc-clip'&&$(id).checked){S.tab='play';if(S.view!=='lobby')S.mode=S.mode==='solo'?'host':S.mode;}
+  render();});});
+$('resetBtn').addEventListener('click',function(){clearTimers();fresh();render();});
+render();
+})();
+</script>
+<script>
+(function(){
+"use strict";
+var ROWS=[
+ [['Esc',1],['F1',1],['F2',1],['F3',1],['F4',1],['F5',1],['F6',1],['F7',1],['F8',1],['F9',1],['F10',1],['F11',1],['F12',1]],
+ [['`',1],['1',1],['2',1],['3',1],['4',1],['5',1],['6',1],['7',1],['8',1],['9',1],['0',1],['-',1],['=',1],['Backspace',2]],
+ [['Tab',1.5],['Q',1],['W',1],['E',1],['R',1],['T',1],['Y',1],['U',1],['I',1],['O',1],['P',1],['[',1],[']',1],['\\',1.5]],
+ [['Caps',1.75],['A',1],['S',1],['D',1],['F',1],['G',1],['H',1],['J',1],['K',1],['L',1],[';',1],["'",1],['Enter',2.25]],
+ [['Shift',2.25],['Z',1],['X',1],['C',1],['V',1],['B',1],['N',1],['M',1],[',',1],['.',1],['/',1],['RShift',2.75,'Shift']],
+ [['Ctrl',1.5],['Alt',1.5],['Space',7],['RAlt',1.5,'Alt'],['RCtrl',1.5,'Ctrl']]
+];
+var MOUSE=[['LMB','Left mouse'],['MMB','Middle mouse'],['RMB','Right mouse'],['Side','Side button'],['Wheel','Wheel']];
+function ext(a,b){var o={},k;for(k in a)o[k]=a[k];for(k in b)o[k]=b[k];return o;}
+var GM={W:['game','Move forward'],A:['game','Strafe left'],S:['game','Move back'],D:['game','Strafe right'],Space:['game','Jump, jetpack, parachute'],
+ Z:['game','Turn left'],C:['game','Turn right'],Q:['game','Inventory left'],E:['game','Inventory right'],F:['game','Open inventory, equip'],G:['game','Close inventory, stow'],
+ Esc:['game','Game menu'],LMB:['game','Fire, melee, use item'],RMB:['game','Sniper mode (Kurt)'],Wheel:['game','Zoom, inventory']};
+var MDEV={F5:['dev','Developer keys (when turned on)'],F6:['dev','Developer keys (when turned on)'],F7:['dev','Developer keys (when turned on)'],F8:['dev','Developer keys (when turned on)'],F9:['dev','Developer keys (when turned on)'],Ctrl:['dev','Ctrl + M, R, D: combat meter (testing)']};
+var GW={W:['game','Move forward'],A:['game','Move left'],S:['game','Move back'],D:['game','Move right'],Esc:['game','Game menu'],LMB:['game','Click a puzzle, draw the line'],RMB:['game','Step back from a puzzle']};
+var CORE={F1:['core','Quick guide (hold)'],F2:['core','Mark a problem for a bug report'],T:['core','Text chat'],V:['core','Ping'],MMB:['core','Ping'],B:['core','Push to talk'],Side:['core','Push to talk'],
+ H:['core','Emote wheel (hold)'],Tab:['core','Player list (hold)'],'[':['core','Watch previous player'],']':['core','Watch next player']};
+var S={
+ mdk2now:ext(ext(GM,MDEV),{Tab:['game','Open inventory (Modern preset, second key)'],T:['coop','Text chat'],V:['coop','Ping'],MMB:['coop','Ping'],R:['coop','Revive (hold)'],B:['coop','Push to talk'],
+   H:['coop','Emote wheel (hold)'],J:['coop','Character wheel (hold)'],Backspace:['coop','Vote to skip the cutscene'],F1:['coop','Quick guide (hold)']}),
+ witnow:ext(GW,{T:['coop','Text chat'],P:['coop','Ping'],G:['coop','Emote wheel (hold)'],X:['coop','Draw (hold); Shift + X clears your ink'],Z:['coop','Drawing canvas'],B:['coop','Next ink colour'],
+   N:['coop','Push to talk'],H:['coop','Next voice channel'],R:['coop','Radio (hold)'],J:['coop','Deploy or retract a sky TV'],K:['coop','Audience seat'],V:['coop','Watch a player\'s screen'],
+   '[':['coop','Watch previous player'],']':['coop','Watch next player'],F1:['coop','Quick guide (hold)'],F2:['coop','Mark a problem for a bug report'],F3:['coop','Puzzle mouse speed boost'],
+   F4:['dev','Nearby puzzles (developer)'],F5:['coop','Player list'],F8:['dev','Developer menu (when turned on)'],F9:['coop','Partner picture: small, large, off'],F10:['coop','Sky TV viewer on or off'],F11:['coop','Sky TV camera consent']}),
+ mdk2std:ext(ext(ext(GM,MDEV),CORE),{R:['coop','Revive (hold)'],J:['coop','Character wheel (hold)'],Backspace:['coop','Vote to skip the cutscene']}),
+ witstd:ext(ext(GW,CORE),{X:['coop','Draw (hold); Shift + X clears your ink'],Z:['coop','Drawing canvas'],Wheel:['coop','Ink colour (while drawing)'],R:['coop','Radio (hold)'],Y:['coop','Next voice channel'],
+   J:['coop','Deploy or retract a sky TV'],K:['coop','Audience seat'],F3:['coop','Puzzle mouse speed boost'],F4:['dev','Nearby puzzles (developer)'],F8:['dev','Developer menu (when turned on)'],
+   F9:['coop','Partner picture: small, large, off'],F10:['coop','Sky TV viewer on or off'],F11:['coop','Sky TV camera consent']})
+};
+var OTHER={mdk2now:'witnow',witnow:'mdk2now',mdk2std:'witstd',witstd:'mdk2std'};
+var NAME={mdk2now:'MDK2 today',witnow:'The Witness today',mdk2std:'MDK2 under the standard',witstd:'The Witness under the standard'};
+var view='mdk2now', kb=document.getElementById('kb'), kbm=document.getElementById('kbm'), info=document.getElementById('kbinfo');
+function isCoop(e){return e&&(e[0]==='coop'||e[0]==='core');}
+function clash(id){var a=S[view][id],b=S[OTHER[view]][id];if(!isCoop(a)||!isCoop(b)||a[1]===b[1])return false;
+  return view.indexOf('now')>0?true:(a[0]==='core'||b[0]==='core');}
+function keyHtml(id,w,cap){var e=S[view][id];var cls='key'+(e?' '+e[0]:'')+(clash(id)?' clash':'');
+  return '<div class="'+cls+'" tabindex="0" data-k="'+id.replace(/"/g,'&quot;')+'" style="flex-grow:'+w+'"><span class="kc">'+(cap||id)+'</span><span class="act">'+(e?e[1]:'')+'</span></div>';}
+function draw(){
+  kb.innerHTML=ROWS.map(function(r){return '<div class="kbrow">'+r.map(function(k){return keyHtml(k[0],k[1],k[2]);}).join('')+'</div>';}).join('');
+  kbm.innerHTML=MOUSE.map(function(m){return keyHtml(m[0],1,m[1]);}).join('');
+  document.getElementById('clashLegend').hidden=!kb.querySelector('.clash')&&!kbm.querySelector('.clash');
+  info.textContent='Point at a key, or tab to it, to read what it does.';
+}
+function show(el){var id=el.getAttribute('data-k'),e=S[view][id],o=S[OTHER[view]][id];
+  var kind=e?{core:'Shared co-op key',coop:'This mod\'s own co-op key',game:'The game\'s own control',dev:'Developer only'}[e[0]]:'Free';
+  var t=(el.querySelector('.kc').textContent)+': '+(e?e[1]+' ('+kind+')':'not used')+'.';
+  if(clash(id))t+=' In '+NAME[OTHER[view]]+': '+o[1]+'.';
+  info.textContent=t;}
+function on(ev){var el=ev.target.closest&&ev.target.closest('.key');if(el)show(el);}
+[kb,kbm].forEach(function(n){n.addEventListener('mouseover',on);n.addEventListener('focusin',on);});
+document.getElementById('kbSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  [].forEach.call(this.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x===b));});view=b.getAttribute('data-v');draw();});
+draw();
+})();
+</script>
